@@ -74,6 +74,13 @@ class RTPhoto < UIImageView
   end
 end
 
+class RTTextarea < UIView
+  def setNeedsLayout
+    if superview
+    end
+  end
+end
+
 class RTTokei < UILabel
   CLOCK_FORMAT = "%H %M"
 
