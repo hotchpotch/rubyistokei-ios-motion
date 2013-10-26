@@ -46,8 +46,19 @@ class RTPhoto < UIImageView
     image = UIImage.imageNamed('ko1.jpg')
     self.contentMode = UIViewContentModeScaleAspectFit
     self.image = image
-    createTextarea
+
+    @textarea = RTTextarea.new
+    addSubview @textarea
+    @textarea.setNeedsLayout
     photo
+  end
+end
+
+class RTTextarea < UIView
+  def init
+    super.tap {|s|
+      s.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(0.7)
+    }
   end
 
   def textareaHeight
@@ -55,28 +66,17 @@ class RTPhoto < UIImageView
     60
   end
 
-  private
-  def createTextarea
-    frame = AVMakeRectWithAspectRatioInsideRect(image.size, self.bounds);
-
-    origin = frame.origin
-    size = frame.size
-    origin.y = size.height - textareaHeight
-    size.height = textareaHeight
-
-    frame.origin = origin
-    frame.size = size
-
-    @textarea = UIView.alloc.initWithFrame(frame)
-    @textarea.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(0.7)
-
-    self.addSubview @textarea
-  end
-end
-
-class RTTextarea < UIView
   def setNeedsLayout
     if superview
+      frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds);
+      origin = frame.origin
+      size = frame.size
+      origin.y = size.height - textareaHeight
+      size.height = textareaHeight
+
+      frame.origin = origin
+      frame.size = size
+      self.frame = frame
     end
   end
 end
