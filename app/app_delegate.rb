@@ -72,14 +72,15 @@ class RTTextarea < UIView
     @bio = UILabel.new
     @taken_by = UILabel.new
 
+    padding = 5
+
     name = 'Koichi SASADA'
-    font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
-    name_text_size = RTTextUtil.text(name, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    @name.font = font
+    name_font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
+    name_text_size = RTTextUtil.text(name, sizeWithFont: name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @name.font = name_font
     @name.textColor = UIColor.whiteColor
     @name.backgroundColor = UIColor.clearColor
     @name.text = name
-    padding = 5
     @name.frame = [[padding, 0], name_text_size]
     addSubview(@name)
 
@@ -98,6 +99,20 @@ class RTTextarea < UIView
     @title.frame = [[name_text_size.width + padding * 2, name_text_size.height - title_text_size.height - padding],
                     title_text_size]
     addSubview(@title)
+
+    second_line_height = name_text_size.height + padding
+
+    bio = "YARV Creator"
+    bio_font = UIFont.fontWithName("AvenirNext-Regular", size: 16)
+    bio_text_size = RTTextUtil.text(bio, sizeWithFont: bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @bio.font = bio_font
+    @bio.textColor = UIColor.whiteColor
+    @bio.backgroundColor = UIColor.clearColor
+    @bio.text = bio
+    @bio.frame = [[padding, second_line_height], bio_text_size]
+    addSubview(@bio)
+
+    taken_by = "- Photo taken by Marcin Bajer"
   end
 
   def setNeedsLayout
