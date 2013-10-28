@@ -87,7 +87,7 @@ class RTTextarea < UIView
     title = '@koichisasada as a teacher'
     title_font_size = 16
     begin
-      title_font = UIFont.fontWithName("AvenirNext-Regular", size: title_font_size)
+      title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
       title_font_size -= 1
       title_text_size = RTTextUtil.text(title, sizeWithFont: title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: name のサイズが frame より大きかった場合バグる
@@ -100,10 +100,10 @@ class RTTextarea < UIView
                     title_text_size]
     addSubview(@title)
 
-    second_line_height = name_text_size.height + padding
+    second_line_height = name_text_size.height - padding
 
     bio = "YARV Creator"
-    bio_font = UIFont.fontWithName("AvenirNext-Regular", size: 16)
+    bio_font = UIFont.fontWithName("AvenirNext-Medium", size: 16)
     bio_text_size = RTTextUtil.text(bio, sizeWithFont: bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @bio.font = bio_font
     @bio.textColor = UIColor.whiteColor
@@ -113,6 +113,20 @@ class RTTextarea < UIView
     addSubview(@bio)
 
     taken_by = "- Photo taken by Marcin Bajer"
+    taken_by_font_size = 14
+    begin
+      taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
+      taken_by_font_size -= 1
+      taken_by_text_size = RTTextUtil.text(taken_by, sizeWithFont: taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+      # XXX: bio のサイズが frame より大きかった場合バグる
+    end while bio_text_size.width + padding * 3 + taken_by_text_size.width > frame.size.width
+    @taken_by.font = taken_by_font
+    @taken_by.textColor = UIColor.whiteColor
+    @taken_by.backgroundColor = UIColor.clearColor
+    @taken_by.text = taken_by
+    @taken_by.frame = [[bio_text_size.width + padding * 2, second_line_height + bio_text_size.height - taken_by_text_size.height],
+                    taken_by_text_size]
+    addSubview(@taken_by)
   end
 
   def setNeedsLayout
