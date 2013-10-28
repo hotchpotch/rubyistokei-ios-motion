@@ -21,19 +21,6 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def viewDidLoad
-    #@state = UILabel.new
-    #@state.font = UIFont.systemFontOfSize(30)
-    #@state.text = 'Tap to start'
-    ##@state.textAlignment = UITextAlignmentCenter
-    #@state.textColor = UIColor.whiteColor
-    #@state.backgroundColor = UIColor.clearColor
-    #@state.frame = [[margin, 200], [view.frame.size.width - margin * 2, 40]]
-    #self.view.addSubview(@state)
-
-    #@photo.photoRect
-    #view.addSubview(@state)
-    #@clock = Clock.new
-    #view.addSubview(@clock)
     tokei = RTTokei.new
     view.addSubview tokei
   end
@@ -48,12 +35,23 @@ class RTTokei < UILabel
 
     font = UIFont.fontWithName("AvenirNext-Bold", size: 72)
     text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     self.font = font
     self.textAlignment = NSTextAlignmentLeft
     self.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
     self.backgroundColor = UIColor.clearColor
     self.text = timeString
     self.frame = [[60, 20], text_size]
+
+    separator_text_size= RTTextUtil.text(":", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @separator = UILabel.new
+    @separator.font = self.font
+    @separator.textColor = self.textColor
+    @separator.backgroundColor = self.backgroundColor
+    @separator.text = ":"
+    @separator.frame = [[hour_text_size.width - 4, 0], separator_text_size]
+    addSubview(@separator)
+
     startTimer
     s
   end
@@ -72,17 +70,8 @@ class RTTokei < UILabel
     Time.now.strftime(CLOCK_FORMAT)
   end
 
-  def timeSeparator
-    if @sep_cycle
-      @sep_cycle = false
-      " "
-    else
-      @sep_cycle = true
-      ":"
-    end
-  end
-
   def timerFired
+    @separator.hidden = !@separator.hidden?
     self.text = timeString
   end
 end
