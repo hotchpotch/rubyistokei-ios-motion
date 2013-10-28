@@ -11,6 +11,7 @@ end
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
   app.name = 'RubyisTokei'
+  app.deployment_target = '6.1'
   app.info_plist['UIStatusBarHidden'] = true
   app.info_plist['UIViewControllerBasedStatusBarAppearance'] = false
   app.info_plist['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationLandscapeLeft']
