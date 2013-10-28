@@ -21,22 +21,69 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def viewDidLoad
-    margin = 20
-
-    @state = UILabel.new
-    @state.font = UIFont.systemFontOfSize(30)
-    @state.text = 'Tap to start'
-    #@state.textAlignment = UITextAlignmentCenter
-    @state.textColor = UIColor.whiteColor
-    @state.backgroundColor = UIColor.clearColor
-    @state.frame = [[margin, 200], [view.frame.size.width - margin * 2, 40]]
-    self.view.addSubview(@state)
-
+    #@state = UILabel.new
+    #@state.font = UIFont.systemFontOfSize(30)
+    #@state.text = 'Tap to start'
+    ##@state.textAlignment = UITextAlignmentCenter
+    #@state.textColor = UIColor.whiteColor
+    #@state.backgroundColor = UIColor.clearColor
+    #@state.frame = [[margin, 200], [view.frame.size.width - margin * 2, 40]]
+    #self.view.addSubview(@state)
 
     #@photo.photoRect
     #view.addSubview(@state)
     #@clock = Clock.new
     #view.addSubview(@clock)
+    tokei = RTTokei.new
+    view.addSubview tokei
+  end
+
+end
+
+class RTTokei < UILabel
+  CLOCK_FORMAT = "%H %M"
+
+  def init
+    s = super
+
+    font = UIFont.fontWithName("AvenirNext-Bold", size: 72)
+    text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    self.font = font
+    self.textAlignment = NSTextAlignmentLeft
+    self.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
+    self.backgroundColor = UIColor.clearColor
+    self.text = timeString
+    self.frame = [[60, 20], text_size]
+    startTimer
+    s
+  end
+
+  attr_reader :timer
+  def startTimer
+    if @timer
+      @timer.invalidate
+      @timer = nil
+    else
+      @timer = NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector:'timerFired', userInfo:nil, repeats:true)
+    end
+  end
+
+  def timeString
+    Time.now.strftime(CLOCK_FORMAT)
+  end
+
+  def timeSeparator
+    if @sep_cycle
+      @sep_cycle = false
+      " "
+    else
+      @sep_cycle = true
+      ":"
+    end
+  end
+
+  def timerFired
+    self.text = timeString
   end
 end
 
@@ -143,19 +190,6 @@ class RTTextarea < UIView
 
       updateFontsLayout
     end
-  end
-end
-
-class RTTokei < UILabel
-  CLOCK_FORMAT = "%H %M"
-
-  def initialize
-    self.font = UIFont.systemFontOfSize(100)
-    self.textAlignment = UITextAlignmentCenter
-    self.textColor = UIColor.whiteColor
-    self.backgroundColor = UIColor.clearColor
-    self.frame = [[0, 0], [200, 200]]
-    self.text = "AAAAAAAAAAA"
   end
 end
 
