@@ -34,7 +34,7 @@ class RubyisTokeiViewController < UIViewController
 
     @tokei = RTTokei.new
     view.addSubview @tokei
-    @tokei.setNeedsLayout
+    @tokei.centering
 
     RubyistManager.load do |manager|
       @manager = manager
@@ -142,30 +142,24 @@ class RTTokei < UIView
     s
   end
 
-  def setNeedsLayout
-    if superview
-      puts 'set!'
-      if superview.image
-        frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds);
-      else
-        frame = superview.frame
-      end
-      p @text_size
-      p frame
-      textareaHeight = @text_size.height
-      origin = frame.origin
-      size = frame.size
-      origin.y = (size.height - @text_size.height) / 2
-      origin.x = (size.width - @text_size.width) / 2
-      p origin
+  def centering
+    frame = superview.frame
+    textareaHeight = @text_size.height
+    origin = frame.origin
+    size = frame.size
+    origin.y = (size.height - @text_size.height) / 2
+    origin.x = (size.width - @text_size.width) / 2
 
-      frame.origin = origin
-      #frame.size = size
-      self.frame = frame
-    end
+    frame.origin = origin
+    #frame.size = size
+    self.frame = frame
+    setNeedsLayout
   end
 
   def updatePositionWithRubyist(rubyist)
+    if superview.image
+      frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds);
+    end
   end
 
   def timeString
