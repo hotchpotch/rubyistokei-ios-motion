@@ -99,6 +99,35 @@ class RTTokei < UILabel
 end
 
 class RubyistManager
+  API_ENDPOINT = "https://api.github.com/repos/darashi/rubyistokei/contents/data"
+
+  def load(&block)
+    BW::HTTP.get(API_ENDPOINT) do |response|
+      manager = self.new
+      if response.ok?
+        begin
+          manager.data = BW::JSON.parse(response.body.to_s)
+        rescue Exception => e
+          p "json error:  #{response.body} - #{e}"
+          manager.error = "json error #{response.body}"
+        end
+      else
+        p "response error #{response.error}"
+        manager.error = 'response error'
+      end
+      block.call manager
+    end
+  end
+
+  def data=(data)
+    @data = data
+    set_queue
+    data
+  end
+
+  def set_queue
+    @queue = self.data.shuffle
+  end
 end
 
 
@@ -107,7 +136,7 @@ class Rubyist
 
   class << self
     def self.load(name, &block)
-      BubbleWrap::HTTP.get(endpoint(name)) do |response|
+      BW::HTTP.get(endpoint(name)) do |response|
         rubyist = self.new
         if response.ok?
           begin
@@ -129,7 +158,7 @@ class Rubyist
     end
   end
 
-  attr_accessor :error
+  attr_accessor :error # XXX
   attr_reader :image_url, :name, :title, :bio, :taken_by
   def initialize
     @error = false
@@ -153,19 +182,22 @@ class Rubyist
 
     data
   end
+
+  def image_data
+    @image_data ||= NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(self.image_url))
+  end
 end
 
 class RTPhoto < UIImageView
   def rubyist=(rubyist)
     self.contentMode = UIViewContentModeScaleAspectFit
-    image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
-    if image_data
-      self.image = UIImage.alloc.initWithData(image_data)
+    if rubyist.image_data
+      self.image = UIImage.alloc.initWithData(rubyist.image_data)
       unless @textarea
         @textarea = RTTextarea.new
         addSubview @textarea
       end
-      @textarea.rubyist = rubyist
+      @textarea.renderRubyist rubyist
     end
   end
 end
@@ -179,18 +211,14 @@ class RTTextarea < UIView
     textarea
   end
 
-  def rubyist=(rubyist)
-    @rubyist = rubyist
-    setNeedsLayout
-    rubyist
-  end
-
   def textareaHeight
     # XXX: auto calc
     60
   end
 
-  def updateFontsLayout
+  def renderRubyist(rubyist)
+    setNeedsLayout
+
     @name ||= UILabel.new
     @title ||= UILabel.new
     @bio ||= UILabel.new
@@ -198,7 +226,6 @@ class RTTextarea < UIView
 
     padding = 5
 
-    p rubyist
     name = rubyist.name
     name_font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
     name_text_size = RTTextUtil.text(name, sizeWithFont: name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
@@ -265,8 +292,6 @@ class RTTextarea < UIView
       frame.origin = origin
       frame.size = size
       self.frame = frame
-
-      updateFontsLayout
     end
   end
 end
