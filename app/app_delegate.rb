@@ -76,9 +76,67 @@ class RTTokei < UILabel
   end
 end
 
+class RubyistManager
+end
+
+
+class Rubyist
+  DATA_API_ENDPOINT = "https://raw.github.com/darashi/rubyistokei/master/data/"
+
+  class << self
+    def self.load(name)
+      rubyist = self.new
+      BubbleWrap::HTTP.get(endpoint(name)) do |response|
+        if response.ok?
+          begin
+            rubyist.data = YAML.load(response.body.to_s)
+          rescue Exception => e
+            p "yaml error:  #{response.body} - #{e}"
+            rubyist.error = "yaml error #{response.body}"
+          end
+        else
+          p "response error #{response.error}"
+          rubyist.error = 'response error'
+        end
+      end
+    end
+
+    def self.endpoint(name)
+      "#{DATA_API_ENDPOINT}#{name}.yaml"
+    end
+  end
+
+  attr_accessor :loaded, :error
+  attr_reader :image_url, :title, :bio, :taken_by
+  def initialize
+    @loaded = false
+    @error = false
+  end
+
+  def data=(data)
+    @data = data
+
+    @image_url = data['url']
+    @title = data['title']
+    @bio = data['bio']
+    @taken_by = data['taken_by']
+
+    tokei = data['tokei']
+    if tokei.kind_of? Hash
+      @position = [tokei['top'].to_i, tokei['left'].to_i]
+      @color = tokei['color']
+      @font = tokei['font']
+    end
+
+    @loaded = true
+    data
+  end
+end
+
 class RTPhoto < UIImageView
   def initWithPhoto(url)
     photo = self.initWithFrame([[0,0], [568,320]])
+    Rubyist.load('kakutani')
     image = UIImage.imageNamed('ko1.jpg')
     self.contentMode = UIViewContentModeScaleAspectFit
     self.image = image
