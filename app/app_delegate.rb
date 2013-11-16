@@ -4,6 +4,8 @@ class AppDelegate
     @window.rootViewController = RubyisTokeiViewController.alloc.init
     @window.rootViewController.wantsFullScreenLayout = true
     @window.makeKeyAndVisible
+    # XXX 
+    $window = @window
     true
   end
 end
@@ -14,28 +16,33 @@ class RubyisTokeiViewController < UIViewController
   #  self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.bounds)
   #end
 
+  #def shouldAutorotateToInterfaceOrientation(orientation)
+  #  [
+  #   UIInterfaceOrientationLandscapeLeft
+  #  ].include?(orientation)
+  #end
+
+  def supportedInterfaceOrientations
+    UIInterfaceOrientationMaskAll
+  end
+
   attr_accessor :current_rubyist
 
   def loadView
     setLoadingUI
-    Rubyist.load('ko1') do |rubyist|
+    Rubyist.load('kakutani') do |rubyist|
       self.current_rubyist = rubyist
       renderRubyist
     end
   end
 
   def renderRubyist
-    photo = RTPhoto.alloc.initWithURL(current_rubyist.image_url)
-    self.view = photo
+    @photo.image_url = current_rubyist.image_url
   end
 
   def setLoadingUI
-    self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.bounds)
-    #label = UILabel.new
-    #label.textColor = UIColor.whiteColor
-    #label.backgroundColor = UIColor.blackColor
-    #label.text = "loading.."
-    #self.view = label
+    @photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+    self.view = @photo
   end
 
 #  def viewDidLoad
@@ -151,17 +158,14 @@ class Rubyist
 end
 
 class RTPhoto < UIImageView
-  def initWithURL(url)
-    photo = self.initWithFrame([[0,0], [568,320]])
+  def image_url=(url)
     self.contentMode = UIViewContentModeScaleAspectFit
-        self.image = UIImage.imageNamed('ko1.jpg')
+    # self.image = UIImage.imageNamed('ko1.jpg')
 
     #Dispatch::Queue.concurrent.async do
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(url))
-      if false && image_data
-        #self.image = UIImage.alloc.initWithData(image_data)
-        self.image = UIImage.imageNamed('ko1.jpg')
-        # self.image = UIImage.alloc.initWithData(image_data)
+      if image_data
+        self.image = UIImage.alloc.initWithData(image_data)
         @textarea = RTTextarea.new
         addSubview @textarea
         @textarea.setNeedsLayout
@@ -169,8 +173,6 @@ class RTPhoto < UIImageView
         # end
       end
     #end
-
-    photo
   end
 end
 
