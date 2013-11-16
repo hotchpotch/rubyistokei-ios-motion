@@ -127,7 +127,7 @@ class RTTokei < UIView
     @time_label = UILabel.new
     @time_label.font = font
     @time_label.textAlignment = NSTextAlignmentLeft
-    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.8)
+    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
     @time_label.backgroundColor = UIColor.clearColor
     @time_label.text = timeString
     @time_label.frame = [[0,0], @text_size]
