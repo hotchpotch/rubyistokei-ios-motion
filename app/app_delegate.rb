@@ -29,20 +29,17 @@ class RubyisTokeiViewController < UIViewController
   attr_accessor :current_rubyist
 
   def loadView
-    setLoadingUI
-    Rubyist.load('kakutani') do |rubyist|
-      self.current_rubyist = rubyist
-      renderRubyist
-    end
-  end
-
-  def renderRubyist
-    @photo.image_url = current_rubyist.image_url
-  end
-
-  def setLoadingUI
     @photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
     self.view = @photo
+
+    Rubyist.load('kakutani') do |rubyist|
+      self.current_rubyist = rubyist
+      @photo.rubyist = rubyist
+      Rubyist.load('darashi') do |rubyist|
+        self.current_rubyist = rubyist
+        @photo.rubyist = rubyist
+      end
+    end
   end
 
 #  def viewDidLoad
@@ -133,7 +130,7 @@ class Rubyist
   end
 
   attr_accessor :error
-  attr_reader :image_url, :title, :bio, :taken_by
+  attr_reader :image_url, :name, :title, :bio, :taken_by
   def initialize
     @error = false
   end
@@ -142,6 +139,7 @@ class Rubyist
     @data = data
 
     @image_url = data['url']
+    @name = data['name']
     @title = data['title']
     @bio = data['bio']
     @taken_by = data['taken_by']
@@ -158,29 +156,33 @@ class Rubyist
 end
 
 class RTPhoto < UIImageView
-  def image_url=(url)
+  def rubyist=(rubyist)
     self.contentMode = UIViewContentModeScaleAspectFit
-    # self.image = UIImage.imageNamed('ko1.jpg')
-
-    #Dispatch::Queue.concurrent.async do
-      image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(url))
-      if image_data
-        self.image = UIImage.alloc.initWithData(image_data)
+    image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
+    if image_data
+      self.image = UIImage.alloc.initWithData(image_data)
+      unless @textarea
         @textarea = RTTextarea.new
         addSubview @textarea
-        @textarea.setNeedsLayout
-        # Dispatch::Queue.main.sync do
-        # end
       end
-    #end
+      @textarea.rubyist = rubyist
+    end
   end
 end
 
 class RTTextarea < UIView
+  attr_reader :rubyist
+
   def init
     textarea = super
     self.backgroundColor = UIColor.blackColor.colorWithAlphaComponent(0.7)
     textarea
+  end
+
+  def rubyist=(rubyist)
+    @rubyist = rubyist
+    setNeedsLayout
+    rubyist
   end
 
   def textareaHeight
@@ -189,14 +191,15 @@ class RTTextarea < UIView
   end
 
   def updateFontsLayout
-    @name = UILabel.new
-    @title = UILabel.new
-    @bio = UILabel.new
-    @taken_by = UILabel.new
+    @name ||= UILabel.new
+    @title ||= UILabel.new
+    @bio ||= UILabel.new
+    @taken_by ||= UILabel.new
 
     padding = 5
 
-    name = 'Koichi SASADA'
+    p rubyist
+    name = rubyist.name
     name_font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
     name_text_size = RTTextUtil.text(name, sizeWithFont: name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @name.font = name_font
@@ -206,7 +209,7 @@ class RTTextarea < UIView
     @name.frame = [[padding, 0], name_text_size]
     addSubview(@name)
 
-    title = '@koichisasada as a teacher'
+    title = rubyist.title
     title_font_size = 16
     begin
       title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
@@ -224,7 +227,7 @@ class RTTextarea < UIView
 
     second_line_height = name_text_size.height - padding
 
-    bio = "YARV Creator"
+    bio = rubyist.bio
     bio_font = UIFont.fontWithName("AvenirNext-Medium", size: 16)
     bio_text_size = RTTextUtil.text(bio, sizeWithFont: bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @bio.font = bio_font
@@ -234,7 +237,7 @@ class RTTextarea < UIView
     @bio.frame = [[padding, second_line_height], bio_text_size]
     addSubview(@bio)
 
-    taken_by = "- Photo taken by Marcin Bajer"
+    taken_by = "- Photo taken by #{rubyist.taken_by}"
     taken_by_font_size = 14
     begin
       taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
