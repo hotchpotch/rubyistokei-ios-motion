@@ -54,8 +54,10 @@ class RubyisTokeiViewController < UIViewController
   def show_next_rubyist
     if @manager
       @manager.next_rubyist do |rubyist|
-        @tokei.updatePositionWithRubyist rubyist
         @photo.showRubyist rubyist
+        @tokei.removeFromSuperview
+        @photo.addSubview(@tokei)
+        @tokei.updatePositionWithRubyist rubyist
         #@photo.alpha = 0.5
         #UIView.beginAnimations('fadeIn', context: nil)
         #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
@@ -125,7 +127,7 @@ class RTTokei < UIView
     @time_label = UILabel.new
     @time_label.font = font
     @time_label.textAlignment = NSTextAlignmentLeft
-    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
+    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.8)
     @time_label.backgroundColor = UIColor.clearColor
     @time_label.text = timeString
     @time_label.frame = [[0,0], @text_size]
@@ -158,7 +160,16 @@ class RTTokei < UIView
 
   def updatePositionWithRubyist(rubyist)
     if superview.image
-      frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds);
+      frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds)
+      size = frame.size
+      #<CGRect origin=#<CGPoint x=44.1171264648438 y=0.0> size=#<CGSize width=479.765747070312 height=320.0>>
+      origin = frame.origin
+      origin.x = (size.width / 1024) * rubyist.left
+      origin.y = (size.height / 760) * rubyist.top
+      p origin
+      frame.origin = origin
+
+      self.frame = frame
     end
   end
 
