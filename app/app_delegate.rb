@@ -14,16 +14,34 @@ class RubyisTokeiViewController < UIViewController
   #  self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.bounds)
   #end
 
+  attr_accessor :current_rubyist
+
   def loadView
-    url = ""
-    @photo = RTPhoto.alloc.initWithPhoto(url)
-    self.view = @photo
+    setLoadingUI
+    Rubyist.load('ko1') do |rubyist|
+      self.current_rubyist = rubyist
+      renderRubyist
+    end
   end
 
-  def viewDidLoad
-    tokei = RTTokei.new
-    view.addSubview tokei
+  def renderRubyist
+    photo = RTPhoto.alloc.initWithURL(current_rubyist.image_url)
+    self.view = photo
   end
+
+  def setLoadingUI
+    self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.bounds)
+    #label = UILabel.new
+    #label.textColor = UIColor.whiteColor
+    #label.backgroundColor = UIColor.blackColor
+    #label.text = "loading.."
+    #self.view = label
+  end
+
+#  def viewDidLoad
+#    tokei = RTTokei.new
+#    view.addSubview tokei
+#  end
 
 end
 
@@ -84,9 +102,9 @@ class Rubyist
   DATA_API_ENDPOINT = "https://raw.github.com/darashi/rubyistokei/master/data/"
 
   class << self
-    def self.load(name)
-      rubyist = self.new
+    def self.load(name, &block)
       BubbleWrap::HTTP.get(endpoint(name)) do |response|
+        rubyist = self.new
         if response.ok?
           begin
             rubyist.data = YAML.load(response.body.to_s)
@@ -98,6 +116,7 @@ class Rubyist
           p "response error #{response.error}"
           rubyist.error = 'response error'
         end
+        block.call rubyist
       end
     end
 
@@ -106,10 +125,9 @@ class Rubyist
     end
   end
 
-  attr_accessor :loaded, :error
+  attr_accessor :error
   attr_reader :image_url, :title, :bio, :taken_by
   def initialize
-    @loaded = false
     @error = false
   end
 
@@ -128,22 +146,30 @@ class Rubyist
       @font = tokei['font']
     end
 
-    @loaded = true
     data
   end
 end
 
 class RTPhoto < UIImageView
-  def initWithPhoto(url)
+  def initWithURL(url)
     photo = self.initWithFrame([[0,0], [568,320]])
-    Rubyist.load('kakutani')
-    image = UIImage.imageNamed('ko1.jpg')
     self.contentMode = UIViewContentModeScaleAspectFit
-    self.image = image
+        self.image = UIImage.imageNamed('ko1.jpg')
 
-    @textarea = RTTextarea.new
-    addSubview @textarea
-    @textarea.setNeedsLayout
+    #Dispatch::Queue.concurrent.async do
+      image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(url))
+      if false && image_data
+        #self.image = UIImage.alloc.initWithData(image_data)
+        self.image = UIImage.imageNamed('ko1.jpg')
+        # self.image = UIImage.alloc.initWithData(image_data)
+        @textarea = RTTextarea.new
+        addSubview @textarea
+        @textarea.setNeedsLayout
+        # Dispatch::Queue.main.sync do
+        # end
+      end
+    #end
+
     photo
   end
 end
