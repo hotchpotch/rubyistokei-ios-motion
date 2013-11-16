@@ -32,13 +32,24 @@ class RubyisTokeiViewController < UIViewController
     @photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
     self.view = @photo
 
-    Rubyist.load('kakutani') do |rubyist|
-      self.current_rubyist = rubyist
+    @manager = RubyistManager.load do |manager|
+      show_next_rubyist
+    end
+
+    #Rubyist.load('kakutani') do |rubyist|
+    #  self.current_rubyist = rubyist
+    #  @photo.rubyist = rubyist
+    #  Rubyist.load('darashi') do |rubyist|
+    #    self.current_rubyist = rubyist
+    #    @photo.rubyist = rubyist
+    #  end
+    #end
+  end
+
+  def show_next_rubyist
+    @manager.next_rubyist do |rubyist|
       @photo.rubyist = rubyist
-      Rubyist.load('darashi') do |rubyist|
-        self.current_rubyist = rubyist
-        @photo.rubyist = rubyist
-      end
+      show_next_rubyist
     end
   end
 
@@ -98,96 +109,6 @@ class RTTokei < UILabel
   end
 end
 
-class RubyistManager
-  API_ENDPOINT = "https://api.github.com/repos/darashi/rubyistokei/contents/data"
-
-  def load(&block)
-    BW::HTTP.get(API_ENDPOINT) do |response|
-      manager = self.new
-      if response.ok?
-        begin
-          manager.data = BW::JSON.parse(response.body.to_s)
-        rescue Exception => e
-          p "json error:  #{response.body} - #{e}"
-          manager.error = "json error #{response.body}"
-        end
-      else
-        p "response error #{response.error}"
-        manager.error = 'response error'
-      end
-      block.call manager
-    end
-  end
-
-  def data=(data)
-    @data = data
-    set_queue
-    data
-  end
-
-  def set_queue
-    @queue = self.data.shuffle
-  end
-end
-
-
-class Rubyist
-  DATA_API_ENDPOINT = "https://raw.github.com/darashi/rubyistokei/master/data/"
-
-  class << self
-    def self.load(name, &block)
-      BW::HTTP.get(endpoint(name)) do |response|
-        rubyist = self.new
-        if response.ok?
-          begin
-            rubyist.data = YAML.load(response.body.to_s)
-          rescue Exception => e
-            p "yaml error:  #{response.body} - #{e}"
-            rubyist.error = "yaml error #{response.body}"
-          end
-        else
-          p "response error #{response.error}"
-          rubyist.error = 'response error'
-        end
-        block.call rubyist
-      end
-    end
-
-    def self.endpoint(name)
-      "#{DATA_API_ENDPOINT}#{name}.yaml"
-    end
-  end
-
-  attr_accessor :error # XXX
-  attr_reader :image_url, :name, :title, :bio, :taken_by
-  def initialize
-    @error = false
-  end
-
-  def data=(data)
-    @data = data
-
-    @image_url = data['url']
-    @name = data['name']
-    @title = data['title']
-    @bio = data['bio']
-    @taken_by = data['taken_by']
-
-    tokei = data['tokei']
-    if tokei.kind_of? Hash
-      @position = [tokei['top'].to_i, tokei['left'].to_i]
-      @color = tokei['color']
-      @font = tokei['font']
-    end
-
-    data
-  end
-
-  def image_data
-    @image_data ||= NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(self.image_url))
-  end
-end
-
 class RTPhoto < UIImageView
   def rubyist=(rubyist)
     self.contentMode = UIViewContentModeScaleAspectFit
@@ -241,6 +162,7 @@ class RTTextarea < UIView
     begin
       title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
       title_font_size -= 1
+      break if title_font_size <= 1
       title_text_size = RTTextUtil.text(title, sizeWithFont: title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: name のサイズが frame より大きかった場合バグる
     end while name_text_size.width + padding * 3 + title_text_size.width > frame.size.width
@@ -269,6 +191,7 @@ class RTTextarea < UIView
     begin
       taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
       taken_by_font_size -= 1
+      break if taken_by_font_size <= 1
       taken_by_text_size = RTTextUtil.text(taken_by, sizeWithFont: taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: bio のサイズが frame より大きかった場合バグる
     end while bio_text_size.width + padding * 3 + taken_by_text_size.width > frame.size.width
