@@ -32,7 +32,12 @@ class RubyisTokeiViewController < UIViewController
     @photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
     self.view = @photo
 
-    @manager = RubyistManager.load do |manager|
+    @tokei = RTTokei.new
+    view.addSubview @tokei
+    @tokei.setNeedsLayout
+
+    RubyistManager.load do |manager|
+      @manager = manager
       show_next_rubyist
     end
 
@@ -47,46 +52,27 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def show_next_rubyist
-    @manager.next_rubyist do |rubyist|
-      @photo.rubyist = rubyist
-      show_next_rubyist
+    if @manager
+      @manager.next_rubyist do |rubyist|
+        @tokei.updatePositionWithRubyist rubyist
+        @photo.showRubyist rubyist
+        #@photo.alpha = 0.5
+        #UIView.beginAnimations('fadeIn', context: nil)
+        #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
+        #UIView.setAnimationDuration(0.3)
+        #@photo.alpha = 1
+        #UIView.commitAnimations
+        #UIView.beginAnimations('fadeOut', context: nil)
+        #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
+        #UIView.setAnimationDuration(0.3)
+        #@photo.alpha = 0.5
+        #UIView.commitAnimations
+      end
     end
   end
 
-#  def viewDidLoad
-#    tokei = RTTokei.new
-#    view.addSubview tokei
-#  end
-
-end
-
-class RTTokei < UILabel
-  CLOCK_FORMAT = "%H %M"
-
-  def init
-    s = super
-
-    font = UIFont.fontWithName("AvenirNext-Bold", size: 72)
-    text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    self.font = font
-    self.textAlignment = NSTextAlignmentLeft
-    self.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
-    self.backgroundColor = UIColor.clearColor
-    self.text = timeString
-    self.frame = [[60, 20], text_size]
-
-    separator_text_size= RTTextUtil.text(":", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    @separator = UILabel.new
-    @separator.font = self.font
-    @separator.textColor = self.textColor
-    @separator.backgroundColor = self.backgroundColor
-    @separator.text = ":"
-    @separator.frame = [[hour_text_size.width - 4, 0], separator_text_size]
-    addSubview(@separator)
-
+  def viewDidLoad
     startTimer
-    s
   end
 
   attr_reader :timer
@@ -99,18 +85,101 @@ class RTTokei < UILabel
     end
   end
 
+  def change_rubyist?
+    change_15sec?
+  end
+
+  def change_15sec?
+    Time.now.to_i % 10 == 0
+  end
+
+  def change_minute?
+    m = Time.now.strftime("%M")
+    if m == @last_minute
+      false
+    else
+      @last_minute = m
+      true
+    end
+  end
+
+  def timerFired
+    if change_rubyist?
+      show_next_rubyist
+    end
+    @tokei.updateTokeiView
+  end
+end
+
+class RTTokei < UIView
+  CLOCK_FORMAT = "%H %M"
+
+  attr_reader :time_label
+  def init
+    s = super
+
+    font = UIFont.fontWithName("AvenirNext-Bold", size: 72)
+    @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+
+    @time_label = UILabel.new
+    @time_label.font = font
+    @time_label.textAlignment = NSTextAlignmentLeft
+    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
+    @time_label.backgroundColor = UIColor.clearColor
+    @time_label.text = timeString
+    @time_label.frame = [[0,0], @text_size]
+    addSubview(@time_label)
+
+    separator_text_size= RTTextUtil.text(":", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @separator = UILabel.new
+    @separator.font = @time_label.font
+    @separator.textColor = @time_label.textColor
+    @separator.backgroundColor = @time_label.backgroundColor
+    @separator.text = ":"
+    @separator.frame = [[hour_text_size.width - 4, 0], separator_text_size]
+    addSubview(@separator)
+    s
+  end
+
+  def setNeedsLayout
+    if superview
+      puts 'set!'
+      if superview.image
+        frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds);
+      else
+        frame = superview.frame
+      end
+      p @text_size
+      p frame
+      textareaHeight = @text_size.height
+      origin = frame.origin
+      size = frame.size
+      origin.y = (size.height - @text_size.height) / 2
+      origin.x = (size.width - @text_size.width) / 2
+      p origin
+
+      frame.origin = origin
+      #frame.size = size
+      self.frame = frame
+    end
+  end
+
+  def updatePositionWithRubyist(rubyist)
+  end
+
   def timeString
     Time.now.strftime(CLOCK_FORMAT)
   end
 
-  def timerFired
+  def updateTokeiView
     @separator.hidden = !@separator.hidden?
-    self.text = timeString
+    self.time_label.text = timeString
   end
 end
 
 class RTPhoto < UIImageView
-  def rubyist=(rubyist)
+  def showRubyist(rubyist)
     self.contentMode = UIViewContentModeScaleAspectFit
     if rubyist.image_data
       self.image = UIImage.alloc.initWithData(rubyist.image_data)
