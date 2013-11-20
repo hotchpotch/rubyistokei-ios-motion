@@ -6,26 +6,26 @@ class Rubyist
       BW::HTTP.get("#{DATA_API_ENDPOINT}#{name}") do |response|
         if response.ok?
           begin
-            Rubyist.new YAML.load(response.body.to_s)
+            rubyist = Rubyist.new YAML.load(response.body.to_s)
           rescue Exception => e
             puts "rubyist load error:  #{name} - #{e}"
             puts response.body
             raise e
           end
+          block.call rubyist
+        else
+          raise 'rubyist load response error..'
         end
-        block.call rubyist
       end
     end
   end
 
   attr_reader :image_url, :name, :title, :bio, :taken_by, :top, :left
   def initialize(data)
-    @data = data
+    self.data = data
   end
 
   def data=(data)
-    @data = data
-
     @image_url = data['url']
     @name = data['name']
     @title = data['title']
@@ -98,6 +98,8 @@ class RubyistManager
   end
 
   def next_rubyist_preload
+    # XXX
+    name = @ordered_rubyist_names[@index]
   end
 
   def next_rubyist_name

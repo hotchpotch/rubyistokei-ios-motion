@@ -26,11 +26,9 @@ class RubyisTokeiViewController < UIViewController
     UIInterfaceOrientationMaskAll
   end
 
-  attr_accessor :current_rubyist
-
   def loadView
-    @photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
-    self.view = @photo
+    self.view = UIView.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+
 
     @tokei = RTTokei.new
     view.addSubview @tokei
@@ -54,9 +52,17 @@ class RubyisTokeiViewController < UIViewController
   def show_next_rubyist
     if @manager
       @manager.next_rubyist_loaded do |rubyist|
-        @photo.showRubyist rubyist
+        unless @current_photo
+          photo1 = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+          photo2 = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+          @current_photo = photo1
+          @background_photo = photo2
+          self.view.addSubview @current_photo
+        end
+
+        @current_photo.showRubyist rubyist
         @tokei.removeFromSuperview
-        @photo.addSubview(@tokei)
+        @current_photo.addSubview(@tokei)
         @tokei.updatePositionWithRubyist rubyist
         @manager.next_rubyist_preload
         #@photo.alpha = 0.5
