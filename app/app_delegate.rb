@@ -35,7 +35,8 @@ class RubyisTokeiViewController < UIViewController
 
     RubyistManager.load do |manager|
       @manager = manager
-      show_next_rubyist
+      photo_preload
+      check_and_show_next_rubyist
     end
 
     #Rubyist.load('kakutani') do |rubyist|
@@ -48,35 +49,74 @@ class RubyisTokeiViewController < UIViewController
     #end
   end
 
-  def show_next_rubyist
-    if @manager
-      @manager.next_rubyist_loaded do |rubyist|
-        unless @current_photo
-          photo1 = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
-          photo2 = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
-          @current_photo = photo1
-          @background_photo = photo2
-          self.view.addSubview @current_photo
-        end
+  def swap_photo!
+    if v = self.view.subviews[0]
+      v.removeFromSuperview
+    end
 
-        @current_photo.showRubyist rubyist
-        @current_photo.addSubview(@tokei)
-        @tokei.updatePositionWithRubyist rubyist
-        @manager.next_rubyist_preload
-        #@photo.alpha = 0.5
-        #UIView.beginAnimations('fadeIn', context: nil)
-        #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
-        #UIView.setAnimationDuration(0.3)
-        #@photo.alpha = 1
-        #UIView.commitAnimations
-        #UIView.beginAnimations('fadeOut', context: nil)
-        #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
-        #UIView.setAnimationDuration(0.3)
-        #@photo.alpha = 0.5
-        #UIView.commitAnimations
+    @hidden_photo.addSubview(@tokei)
+    @tokei.updatePositionWithRubyist @hidden_photo.rubyist
+    self.view.addSubview @hidden_photo
+    @hidden_photo = nil
+  end
+
+  def photo_preload
+    puts 'photo preloading'
+    # XXX: hidden_photo を使い回すと落ちる
+    @hidden_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+    @manager.next_rubyist_loaded do |rubyist|
+      puts "maneger loaded rubyist #{rubyist.name}"
+      p "foobar"
+      puts @hidden_photo.object_id
+      @hidden_photo.showRubyist(rubyist) do
+      puts "show rubylist next : #{rubyist.name}"
+        @next_photo_loaded = true
       end
     end
   end
+
+  def check_and_show_next_rubyist
+    show_next_rubyist unless @now_changing
+  end
+
+  def show_next_rubyist
+    @now_changing = true
+    if @next_photo_loaded
+      self.swap_photo!
+      @next_photo_loaded = false
+      @now_changing = false
+      photo_preload
+      return
+    end
+
+    Dispatch::Queue.concurrent.async do
+      puts 'waiting...'
+      sleep 1
+      Dispatch::Queue.main.sync do
+        show_next_rubyist
+      end
+    end
+  end
+
+#    @manager.next_rubyist_loaded do |rubyist|
+#      unless @current_photo
+#        @current_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+#        self.view.addSubview @current_photo
+#      end
+#
+#      #@photo.alpha = 0.5
+#      #UIView.beginAnimations('fadeIn', context: nil)
+#      #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
+#      #UIView.setAnimationDuration(0.3)
+#      #@photo.alpha = 1
+#      #UIView.commitAnimations
+#      #UIView.beginAnimations('fadeOut', context: nil)
+#      #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
+#      #UIView.setAnimationDuration(0.3)
+#      #@photo.alpha = 0.5
+#      #UIView.commitAnimations
+#    end
+#  end
 
   def viewDidLoad
     startTimer
@@ -93,7 +133,7 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def change_rubyist?
-    change_10sec?
+    @manager && change_10sec?
   end
 
   def change_10sec?
@@ -112,7 +152,7 @@ class RubyisTokeiViewController < UIViewController
 
   def timerFired
     if change_rubyist?
-      show_next_rubyist
+      check_and_show_next_rubyist
     end
     @tokei.updateTokeiView
   end
@@ -189,20 +229,30 @@ class RTTokei < UIView
 end
 
 class RTPhoto < UIImageView
-  def showRubyist(rubyist)
+  attr_accessor :rubyist
+  def showRubyist(rubyist, &block)
+    puts 'this is showRubyist'
+    self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
 
+    puts 'sR 1'
     Dispatch::Queue.concurrent.async do
+    puts 'sR 2'
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
+    puts 'sR 3'
       if image_data
+    puts 'sR 4'
         image = UIImage.alloc.initWithData(image_data)
         Dispatch::Queue.main.sync do
+    puts 'sR 5'
           self.image = image
           unless @textarea
             @textarea = RTTextarea.new
             addSubview @textarea
           end
+    puts 'sR 6'
           @textarea.renderRubyist rubyist
+          block.call
         end
       end
     end
