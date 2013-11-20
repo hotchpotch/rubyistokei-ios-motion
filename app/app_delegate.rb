@@ -280,7 +280,7 @@ class RTTextarea < UIView
 
     padding = 5
 
-    name = rubyist.name
+    name = rubyist.name || ''
     name_font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
     name_text_size = RTTextUtil.text(name, sizeWithFont: name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @name.font = name_font
@@ -290,7 +290,7 @@ class RTTextarea < UIView
     @name.frame = [[padding, 0], name_text_size]
     addSubview(@name)
 
-    title = rubyist.title
+    title = rubyist.title || ''
     title_font_size = 16
     begin
       title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
@@ -309,7 +309,7 @@ class RTTextarea < UIView
 
     second_line_height = name_text_size.height - padding
 
-    bio = rubyist.bio
+    bio = rubyist.bio || ''
     bio_font = UIFont.fontWithName("AvenirNext-Medium", size: 16)
     bio_text_size = RTTextUtil.text(bio, sizeWithFont: bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @bio.font = bio_font
