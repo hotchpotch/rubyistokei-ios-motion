@@ -54,9 +54,9 @@ class RubyisTokeiViewController < UIViewController
       v.removeFromSuperview
     end
 
+    self.view.addSubview @hidden_photo
     @hidden_photo.addSubview(@tokei)
     @tokei.updatePositionWithRubyist @hidden_photo.rubyist
-    self.view.addSubview @hidden_photo
     @hidden_photo = nil
   end
 
@@ -162,7 +162,7 @@ class RTTokei < UIView
   def init
     s = super
 
-    font = UIFont.fontWithName("AvenirNext-Bold", size: 72)
+    font = UIFont.fontWithName("AvenirNext-Bold", size: 60)
     @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
@@ -203,11 +203,12 @@ class RTTokei < UIView
   def updatePositionWithRubyist(rubyist)
     if superview.image
       frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds)
+      p frame
       size = frame.size
       #<CGRect origin=#<CGPoint x=44.1171264648438 y=0.0> size=#<CGSize width=479.765747070312 height=320.0>>
       origin = frame.origin
-      origin.x = (size.width / 1024) * rubyist.left
-      origin.y = (size.height / 760) * rubyist.top
+      origin.x += (size.width / 1024) * rubyist.left
+      origin.y += (size.height / 760) * rubyist.top
       p origin
       frame.origin = origin
 
