@@ -53,11 +53,12 @@ class RubyisTokeiViewController < UIViewController
 
   def show_next_rubyist
     if @manager
-      @manager.next_rubyist do |rubyist|
+      @manager.next_rubyist_loaded do |rubyist|
         @photo.showRubyist rubyist
         @tokei.removeFromSuperview
         @photo.addSubview(@tokei)
         @tokei.updatePositionWithRubyist rubyist
+        @manager.next_rubyist_preload
         #@photo.alpha = 0.5
         #UIView.beginAnimations('fadeIn', context: nil)
         #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
@@ -88,10 +89,10 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def change_rubyist?
-    change_15sec?
+    change_10sec?
   end
 
-  def change_15sec?
+  def change_10sec?
     Time.now.to_i % 10 == 0
   end
 

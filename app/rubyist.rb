@@ -40,7 +40,10 @@ class RubyistManager
       BW::HTTP.get(API_ENDPOINT) do |response|
         if response.ok?
           begin
-            manager.data = BW::JSON.parse(response.body.to_s)
+            BW::JSON.parse(response.body.to_s).each do |h|
+              manager.rubyists[h['name']] = nil
+            end
+            manager.orderd!
           rescue Exception => e
             p "json error:  #{response.body} - #{e}"
             manager.error = "json error #{response.body}"
@@ -55,15 +58,28 @@ class RubyistManager
     end
   end
 
+  attr_reader :rubyists
+  def initialize
+    @rubyists = {}
+    @rubyist_cache = {}
+    @ordered_rubyist_names = []
+    @index = 0
+  end
+
   def endpoint(name)
     "#{DATA_API_ENDPOINT}#{name}.yaml"
   end
 
-  def next_rubyist(&block)
-    member = @queue.pop || set_queue.pop
-    puts "next_rubyist: #{member['name']}"
+  def next_rubyist_loaded(&block)
+    name = next_rubyist_name
+    puts "next_rubyist_loaded: #{name}"
 
-    BW::HTTP.get("#{DATA_API_ENDPOINT}#{member['name']}") do |response|
+    if rubyists[name]
+      block.call rubyists[name]
+      return
+    end
+
+    BW::HTTP.get("#{DATA_API_ENDPOINT}#{name}") do |response|
       rubyist = Rubyist.new
       if response.ok?
         begin
@@ -74,20 +90,27 @@ class RubyistManager
         end
       else
         p "response error #{response.error}"
-        rubyist.error = 'response error'
+        next_rubyist_loaded(&block)
       end
+      rubyists[name] = rubyist
       block.call rubyist
     end
   end
 
-  def data=(data)
-    @data = data
-    set_queue
-    data
+  def next_rubyist_preload
   end
 
-  def set_queue
-    @queue = @data.shuffle
+  def next_rubyist_name
+    name = @ordered_rubyist_names[@index]
+    @index += 1
+    if @index > @ordered_rubyist_names.size
+      @index = 0
+    end
+    name
+  end
+
+  def orderd!
+    @ordered_rubyist_names = @rubyists.keys.shuffle
   end
 end
 
