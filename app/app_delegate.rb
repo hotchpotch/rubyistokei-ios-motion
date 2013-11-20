@@ -29,7 +29,6 @@ class RubyisTokeiViewController < UIViewController
   def loadView
     self.view = UIView.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
 
-
     @tokei = RTTokei.new
     view.addSubview @tokei
     @tokei.centering
@@ -61,7 +60,6 @@ class RubyisTokeiViewController < UIViewController
         end
 
         @current_photo.showRubyist rubyist
-        @tokei.removeFromSuperview
         @current_photo.addSubview(@tokei)
         @tokei.updatePositionWithRubyist rubyist
         @manager.next_rubyist_preload
