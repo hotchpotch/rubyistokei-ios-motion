@@ -4,17 +4,24 @@ class Rubyist
   class << self
     def load_by_name(name, &block)
       BW::HTTP.get("#{DATA_API_ENDPOINT}#{name}") do |response|
+        error = false
         if response.ok?
           begin
             rubyist = Rubyist.new YAML.load(response.body.to_s)
           rescue Exception => e
             puts "rubyist load error:  #{name} - #{e}"
             puts response.body
-            raise e
+            error = true
           end
-          block.call rubyist
         else
-          raise 'rubyist load response error..'
+          puts 'rubyist load response error..'
+          error = true
+        end
+
+        if error
+          block.call :error
+        else
+          block.call rubyist
         end
       end
     end
@@ -83,7 +90,7 @@ class RubyistManager
     @index = 0
   end
 
-  def next_rubyist_loaded(&block)
+  def next_rubyist(&block)
     name = next_rubyist_name
     puts "next_rubyist_load: #{name}"
 
@@ -93,14 +100,15 @@ class RubyistManager
     end
 
     Rubyist.load_by_name(name) do |rubyist|
-      rubyists[name] = rubyist
-      block.call rubyist
+      if rubyist == :error
+        rubyists.delete(name)
+        puts "rubylist load error: #{name} - call next_rubyist"
+        next_rubyist(&block)
+      else
+        rubyists[name] = rubyist
+        block.call rubyist
+      end
     end
-  end
-
-  def next_rubyist_preload
-    # XXX
-    name = @ordered_rubyist_names[@index]
   end
 
   def next_rubyist_name
@@ -114,6 +122,7 @@ class RubyistManager
 
   def orderd!
     @ordered_rubyist_names = @rubyists.keys.shuffle
+    @ordered_rubyist_names[1] = 'josevalim.yaml'
   end
 end
 

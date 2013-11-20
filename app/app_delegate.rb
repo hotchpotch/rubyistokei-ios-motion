@@ -64,12 +64,9 @@ class RubyisTokeiViewController < UIViewController
     puts 'photo preloading'
     # XXX: hidden_photo を使い回すと落ちる
     @hidden_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
-    @manager.next_rubyist_loaded do |rubyist|
+    @manager.next_rubyist do |rubyist|
       puts "maneger loaded rubyist #{rubyist.name}"
-      p "foobar"
-      puts @hidden_photo.object_id
       @hidden_photo.showRubyist(rubyist) do
-      puts "show rubylist next : #{rubyist.name}"
         @next_photo_loaded = true
       end
     end
