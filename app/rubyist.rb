@@ -1,9 +1,26 @@
 
 class Rubyist
-  attr_accessor :error # XXX
+  DATA_API_ENDPOINT = "https://raw.github.com/darashi/rubyistokei/master/data/"
+  class << self
+    def load_by_name(name, &block)
+      BW::HTTP.get("#{DATA_API_ENDPOINT}#{name}") do |response|
+        if response.ok?
+          begin
+            Rubyist.new YAML.load(response.body.to_s)
+          rescue Exception => e
+            puts "rubyist load error:  #{name} - #{e}"
+            puts response.body
+            raise e
+          end
+        end
+        block.call rubyist
+      end
+    end
+  end
+
   attr_reader :image_url, :name, :title, :bio, :taken_by, :top, :left
-  def initialize
-    @error = false
+  def initialize(data)
+    @data = data
   end
 
   def data=(data)
@@ -32,7 +49,6 @@ end
 
 class RubyistManager
   API_ENDPOINT = "https://api.github.com/repos/darashi/rubyistokei/contents/data"
-  DATA_API_ENDPOINT = "https://raw.github.com/darashi/rubyistokei/master/data/"
 
   class << self
     def load(&block)
@@ -66,32 +82,16 @@ class RubyistManager
     @index = 0
   end
 
-  def endpoint(name)
-    "#{DATA_API_ENDPOINT}#{name}.yaml"
-  end
-
   def next_rubyist_loaded(&block)
     name = next_rubyist_name
-    puts "next_rubyist_loaded: #{name}"
+    puts "next_rubyist_load: #{name}"
 
     if rubyists[name]
       block.call rubyists[name]
       return
     end
 
-    BW::HTTP.get("#{DATA_API_ENDPOINT}#{name}") do |response|
-      rubyist = Rubyist.new
-      if response.ok?
-        begin
-          rubyist.data = YAML.load(response.body.to_s)
-        rescue Exception => e
-          p "yaml error:  #{response.body} - #{e}"
-          rubyist.error = "yaml error #{response.body}"
-        end
-      else
-        p "response error #{response.error}"
-        next_rubyist_loaded(&block)
-      end
+    Rubyist.load_by_name(name) do |rubyist|
       rubyists[name] = rubyist
       block.call rubyist
     end
