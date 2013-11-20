@@ -186,13 +186,20 @@ end
 class RTPhoto < UIImageView
   def showRubyist(rubyist)
     self.contentMode = UIViewContentModeScaleAspectFit
-    if rubyist.image_data
-      self.image = UIImage.alloc.initWithData(rubyist.image_data)
-      unless @textarea
-        @textarea = RTTextarea.new
-        addSubview @textarea
+
+    Dispatch::Queue.concurrent.async do
+      image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
+      if image_data
+        image = UIImage.alloc.initWithData(image_data)
+        Dispatch::Queue.main.sync do
+          self.image = image
+          unless @textarea
+            @textarea = RTTextarea.new
+            addSubview @textarea
+          end
+          @textarea.renderRubyist rubyist
+        end
       end
-      @textarea.renderRubyist rubyist
     end
   end
 end

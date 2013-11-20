@@ -28,10 +28,6 @@ class Rubyist
 
     data
   end
-
-  def image_data
-    @image_data ||= NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(self.image_url))
-  end
 end
 
 class RubyistManager
