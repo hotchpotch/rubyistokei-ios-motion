@@ -50,13 +50,23 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def swap_photo!
-    if v = self.view.subviews[0]
-      v.removeFromSuperview
+    if current_photo = self.view.subviews[0]
+      if current_photo.kind_of? RTPhoto
+        current_photo.fadeOut {
+          current_photo.removeFromSuperview
+          current_photo = nil
+        }
+      end
     end
 
-    self.view.addSubview @hidden_photo
-    @hidden_photo.addSubview(@tokei)
-    @tokei.updatePositionWithRubyist @hidden_photo.rubyist
+    hidden_photo = @hidden_photo
+
+    self.view.addSubview hidden_photo
+    hidden_photo.fadeIn {
+      hidden_photo.addSubview(@tokei)
+      @tokei.updatePositionWithRubyist hidden_photo.rubyist
+      hidden_photo = nil
+    }
     @hidden_photo = nil
   end
 
@@ -64,6 +74,7 @@ class RubyisTokeiViewController < UIViewController
     puts 'photo preloading'
     # XXX: hidden_photo を使い回すと落ちる
     @hidden_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+    @hidden_photo.alpha = 0
     @manager.next_rubyist do |rubyist|
       puts "maneger loaded rubyist #{rubyist.name}"
       @hidden_photo.showRubyist(rubyist) do
@@ -254,6 +265,46 @@ class RTPhoto < UIImageView
         end
       end
     end
+  end
+
+#    [UIView animateWithDuration:1.0
+#                          delay:0.0
+#                        options:(UIViewAnimationCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction)
+#                     animations:^{
+#                         [UIView setAnimationDelegate:self];
+#
+#                         [UIView setAnimationDidStopSelector:@selector(moveToLeft:finished:context:)];
+#                         self.bug.transform = CGAffineTransformMakeRotation(0);
+#
+#                     }completion:^(BOOL finished){
+#                         NSLog(@"Face left done");
+#
+#                     }];
+
+  def fadeIn(&block)
+    UIView.animateWithDuration(1.0,
+                             delay: 0.0,
+                             options:UIViewAnimationCurveEaseInOut,
+                             animations: -> {
+                               self.alpha = 1.0
+                             },
+                             completion: -> (b) {
+                               block.call
+                             }
+                       )
+  end
+
+  def fadeOut(&block)
+    UIView.animateWithDuration(1.0,
+                             delay: 0.0,
+                             options:UIViewAnimationCurveEaseInOut,
+                             animations: -> {
+                               self.alpha = 0.0
+                             },
+                             completion: -> (b) {
+                               block.call
+                             }
+                       )
   end
 end
 
