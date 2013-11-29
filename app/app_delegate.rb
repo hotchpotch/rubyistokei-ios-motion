@@ -50,21 +50,37 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def swap_photo!
-    if current_photo = self.view.subviews[0]
-      if current_photo.kind_of? RTPhoto
-        current_photo.fadeOut {
-          current_photo.removeFromSuperview
-          current_photo = nil
+    self.view.subviews.each do |photo|
+      if photo.kind_of? RTPhoto
+        photo.fadeOut {
+          photo.removeFromSuperview
+          photo = nil
         }
+      else
+        # maybe Tokei
+        UIView.animateWithDuration(0.5,
+                                   delay: 0.0,
+                                   options:UIViewAnimationCurveEaseInOut,
+                                   animations: -> {
+                                     photo.alpha = 0.0
+                                   },
+                                   completion: -> (b) {
+                                     photo.removeFromSuperview
+                                   }
+                                  )
       end
     end
 
     hidden_photo = @hidden_photo
+    hidden_photo_tokei = RTTokei.new
+    hidden_photo.addSubview(hidden_photo_tokei)
+    hidden_photo_tokei.updatePositionWithRubyist hidden_photo.rubyist
 
     self.view.addSubview hidden_photo
     hidden_photo.fadeIn {
-      hidden_photo.addSubview(@tokei)
-      @tokei.updatePositionWithRubyist hidden_photo.rubyist
+      puts "subviews: #{self.view.subviews.size}"
+      @tokei = hidden_photo_tokei
+      hidden_photo_tokei = nil
       hidden_photo = nil
     }
     @hidden_photo = nil
@@ -145,17 +161,11 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def change_10sec?
-    Time.now.to_i % 10 == 0
+    Time.now.strftime("%S")[-1] == "9"
   end
 
   def change_minute?
-    m = Time.now.strftime("%M")
-    if m == @last_minute
-      false
-    else
-      @last_minute = m
-      true
-    end
+    Time.now.strftime("%S") == "59"
   end
 
   def timerFired
@@ -267,20 +277,6 @@ class RTPhoto < UIImageView
     end
   end
 
-#    [UIView animateWithDuration:1.0
-#                          delay:0.0
-#                        options:(UIViewAnimationCurveEaseInOut|UIViewAnimationOptionAllowUserInteraction)
-#                     animations:^{
-#                         [UIView setAnimationDelegate:self];
-#
-#                         [UIView setAnimationDidStopSelector:@selector(moveToLeft:finished:context:)];
-#                         self.bug.transform = CGAffineTransformMakeRotation(0);
-#
-#                     }completion:^(BOOL finished){
-#                         NSLog(@"Face left done");
-#
-#                     }];
-
   def fadeIn(&block)
     UIView.animateWithDuration(1.0,
                              delay: 0.0,
@@ -295,7 +291,7 @@ class RTPhoto < UIImageView
   end
 
   def fadeOut(&block)
-    UIView.animateWithDuration(1.0,
+    UIView.animateWithDuration(0.5,
                              delay: 0.0,
                              options:UIViewAnimationCurveEaseInOut,
                              animations: -> {
