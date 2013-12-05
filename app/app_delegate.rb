@@ -1,27 +1,15 @@
 class AppDelegate
   def application(application, didFinishLaunchingWithOptions:launchOptions)
     @window = UIWindow.alloc.initWithFrame(UIScreen.mainScreen.bounds)
-    @window.rootViewController = RubyisTokeiViewController.alloc.init
+    @window.rootViewController = RubyisTokeiViewController.new
     @window.rootViewController.wantsFullScreenLayout = true
     @window.makeKeyAndVisible
-    # XXX 
     $window = @window
     true
   end
 end
 
 class RubyisTokeiViewController < UIViewController
-  #def loadView
-  #  #self.view = UIImageView.alloc.init
-  #  self.view = UIView.alloc.initWithFrame(UIScreen.mainScreen.bounds)
-  #end
-
-  #def shouldAutorotateToInterfaceOrientation(orientation)
-  #  [
-  #   UIInterfaceOrientationLandscapeLeft
-  #  ].include?(orientation)
-  #end
-
   def supportedInterfaceOrientations
     UIInterfaceOrientationMaskAll
   end
@@ -38,15 +26,6 @@ class RubyisTokeiViewController < UIViewController
       photo_preload
       check_and_show_next_rubyist
     end
-
-    #Rubyist.load('kakutani') do |rubyist|
-    #  self.current_rubyist = rubyist
-    #  @photo.rubyist = rubyist
-    #  Rubyist.load('darashi') do |rubyist|
-    #    self.current_rubyist = rubyist
-    #    @photo.rubyist = rubyist
-    #  end
-    #end
   end
 
   def swap_photo!
@@ -122,26 +101,6 @@ class RubyisTokeiViewController < UIViewController
     end
   end
 
-#    @manager.next_rubyist_loaded do |rubyist|
-#      unless @current_photo
-#        @current_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
-#        self.view.addSubview @current_photo
-#      end
-#
-#      #@photo.alpha = 0.5
-#      #UIView.beginAnimations('fadeIn', context: nil)
-#      #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
-#      #UIView.setAnimationDuration(0.3)
-#      #@photo.alpha = 1
-#      #UIView.commitAnimations
-#      #UIView.beginAnimations('fadeOut', context: nil)
-#      #UIView.setAnimationCurve(UIViewAnimationCurveEaseOut)
-#      #UIView.setAnimationDuration(0.3)
-#      #@photo.alpha = 0.5
-#      #UIView.commitAnimations
-#    end
-#  end
-
   def viewDidLoad
     startTimer
   end
@@ -184,8 +143,8 @@ class RTTokei < UIView
     s = super
 
     font = UIFont.fontWithName("AvenirNext-Bold", size: 60)
-    @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @text_size = timeString.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    hour_text_size = "00".sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
     @time_label = UILabel.new
     @time_label.font = font
@@ -196,7 +155,7 @@ class RTTokei < UIView
     @time_label.frame = [[0,0], @text_size]
     addSubview(@time_label)
 
-    separator_text_size= RTTextUtil.text(":", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    separator_text_size= ":".sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @separator = UILabel.new
     @separator.font = @time_label.font
     @separator.textColor = @time_label.textColor
@@ -329,9 +288,10 @@ class RTTextarea < UIView
     padding = 5
 
     name = rubyist.name || ''
-    name_font = UIFont.fontWithName("AvenirNext-Bold", size: 30)
-    name_text_size = RTTextUtil.text(name, sizeWithFont: name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    @name.font = name_font
+    name_font_size = name.size > 14 ? 25 : 30
+    namefont = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
+    name_text_size = name.sizeWithFont(namefont, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @name.font = namefont
     @name.textColor = UIColor.whiteColor
     @name.backgroundColor = UIColor.clearColor
     @name.text = name
@@ -344,7 +304,7 @@ class RTTextarea < UIView
       title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
       title_font_size -= 1
       break if title_font_size <= 1
-      title_text_size = RTTextUtil.text(title, sizeWithFont: title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+      title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: name のサイズが frame より大きかった場合バグる
     end while name_text_size.width + padding * 3 + title_text_size.width > frame.size.width
     @title.font = title_font
@@ -359,7 +319,7 @@ class RTTextarea < UIView
 
     bio = rubyist.bio || ''
     bio_font = UIFont.fontWithName("AvenirNext-Medium", size: 16)
-    bio_text_size = RTTextUtil.text(bio, sizeWithFont: bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @bio.font = bio_font
     @bio.textColor = UIColor.whiteColor
     @bio.backgroundColor = UIColor.clearColor
@@ -373,7 +333,7 @@ class RTTextarea < UIView
       taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
       taken_by_font_size -= 1
       break if taken_by_font_size <= 1
-      taken_by_text_size = RTTextUtil.text(taken_by, sizeWithFont: taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+      taken_by_text_size = taken_by.sizeWithFont(taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: bio のサイズが frame より大きかった場合バグる
     end while bio_text_size.width + padding * 3 + taken_by_text_size.width > frame.size.width
     @taken_by.font = taken_by_font
@@ -402,17 +362,7 @@ end
 
 class RTTextUtil
   def self.text(text, sizeWithFont:font, constrainedToSize:size, lineBreakMode:lineBreakMode)
-    if false # UIDevice.currentDevice.ios7?
-      frame = text.boundingRectWithSize(
-        size,
-        options:NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading,
-        attributes:self.attributesWithFont(font, color:nil, lineBreakMode:lineBreakMode),
-        context:nil
-      )
-      return CGSizeMake(frame.size.width.ceil, frame.size.height.ceil)
-    else
-      return text.sizeWithFont(font, constrainedToSize:size, lineBreakMode:lineBreakMode)
-    end
+    return text.sizeWithFont(font, constrainedToSize:size, lineBreakMode:lineBreakMode)
   end
 
   def self.attributesWithFont(font, color:color, lineBreakMode:lineBreakMode)
