@@ -183,7 +183,7 @@ class RTTokei < UIView
   end
 
   def updatePositionWithRubyist(rubyist)
-    if superview.image && rubyist
+    if superview.image
       frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds)
       p frame
       size = frame.size
@@ -212,6 +212,7 @@ class RTPhoto < UIImageView
   attr_accessor :rubyist
   def showRubyist(rubyist, &block)
     puts 'this is showRubyist'
+    self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
 
     puts 'sR 1'
@@ -278,21 +279,7 @@ class RTTextarea < UIView
     60
   end
 
-  def renderRubyist(rubyist)
-    setNeedsLayout
-
-    @name ||= UILabel.new
-    @title ||= UILabel.new
-    @bio ||= UILabel.new
-    @taken_by ||= UILabel.new
-
-
-    #name = rubyist.name || ''
-    #name_font_size = name.size > 14 ? 25 : 30
-    #name_font = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
-    #name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-
-    name = rubyist.name || ''
+  def renderName(name = '')
     name_font_size = 30
     begin
       name_font = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
@@ -300,14 +287,17 @@ class RTTextarea < UIView
       break if name_font_size <= 1
       name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     end while name_text_size.width > (frame.size.width * 2 / 3)
+    @name = UILabel.new
     @name.font = name_font
     @name.textColor = UIColor.whiteColor
     @name.backgroundColor = UIColor.clearColor
     @name.text = name
     @name.frame = [[PADDING, 0], name_text_size]
     addSubview(@name)
+  end
 
-    title = rubyist.title || ''
+  def renderTitle(title = '')
+    name_text_size = @name.frame.size
     title_font_size = 16
     begin
       title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
@@ -316,6 +306,7 @@ class RTTextarea < UIView
       title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     end while name_text_size.width + PADDING * 3 + title_text_size.width > frame.size.width
 
+    @title = UILabel.new
     @title.font = title_font
     @title.textColor = UIColor.whiteColor
     @title.backgroundColor = UIColor.clearColor
@@ -323,10 +314,9 @@ class RTTextarea < UIView
     @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - title_text_size.height - PADDING],
                     title_text_size]
     addSubview(@title)
+  end
 
-    second_line_height = name_text_size.height - PADDING
-
-    bio = rubyist.bio || ''
+  def renderBio(bio = '')
     bio_font_size = 16
     begin
       bio_font = UIFont.fontWithName("AvenirNext-Medium", size: bio_font_size)
@@ -334,12 +324,28 @@ class RTTextarea < UIView
       break if bio_font_size <= 1
       bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     end while bio_text_size.width > (frame.size.width * 3 / 4)
+    @bio = UILabel.new
     @bio.font = bio_font
     @bio.textColor = UIColor.whiteColor
     @bio.backgroundColor = UIColor.clearColor
     @bio.text = bio
-    @bio.frame = [[PADDING, second_line_height], bio_text_size]
+    @bio.frame = [[PADDING, secondLineHeight], bio_text_size]
     addSubview(@bio)
+  end
+
+  def secondLineHeight
+    @name.frame.size.height - PADDING
+  end
+
+  def renderRubyist(rubyist)
+    setNeedsLayout
+
+    renderName(rubyist.name)
+    renderTitle(rubyist.title)
+    renderBio(rubyist.bio)
+    @taken_by ||= UILabel.new
+    bio_font_size = @bio.font.pointSize
+    bio_text_size = @bio.frame.size
 
     taken_by = "- Photo taken by #{rubyist.taken_by}"
     taken_by_font_size = [14, bio_font_size].min
@@ -353,7 +359,7 @@ class RTTextarea < UIView
     @taken_by.textColor = UIColor.whiteColor
     @taken_by.backgroundColor = UIColor.clearColor
     @taken_by.text = taken_by
-    @taken_by.frame = [[bio_text_size.width + PADDING * 2, second_line_height + bio_text_size.height - taken_by_text_size.height],
+    @taken_by.frame = [[bio_text_size.width + PADDING * 2, secondLineHeight + bio_text_size.height - taken_by_text_size.height],
                     taken_by_text_size]
     addSubview(@taken_by)
   end
