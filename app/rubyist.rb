@@ -57,6 +57,7 @@ end
 
 class RubyistManager
   API_ENDPOINT = "https://api.github.com/repos/darashi/rubyistokei/contents/data"
+  attr_accessor :error
 
   class << self
     def load(&block)

@@ -142,9 +142,10 @@ class RTTokei < UIView
   def init
     s = super
 
-    font = UIFont.fontWithName("AvenirNext-Bold", size: 60)
-    @text_size = timeString.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    hour_text_size = "00".sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    # font = UIFont.fontWithName("AvenirNext-Bold", size: 60)
+    font = UIFont.fontWithName("HelveticaNeue-Thin", size: 60)
+    @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
     @time_label = UILabel.new
     @time_label.font = font
@@ -157,7 +158,8 @@ class RTTokei < UIView
 
     separator_text_size= ":".sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     @separator = UILabel.new
-    @separator.font = @time_label.font
+    # tfont = UIFont.fontWithName("AvenirNext-Bold", size: 60)
+    @separator.font = font
     @separator.textColor = @time_label.textColor
     @separator.backgroundColor = @time_label.backgroundColor
     @separator.text = ":"
