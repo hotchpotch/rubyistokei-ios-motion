@@ -289,11 +289,20 @@ class RTTextarea < UIView
 
     padding = 5
 
+    #name = rubyist.name || ''
+    #name_font_size = name.size > 14 ? 25 : 30
+    #name_font = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
+    #name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+
     name = rubyist.name || ''
-    name_font_size = name.size > 14 ? 25 : 30
-    namefont = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
-    name_text_size = name.sizeWithFont(namefont, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    @name.font = namefont
+    name_font_size = 30
+    begin
+      name_font = UIFont.fontWithName("AvenirNext-Medium", size: name_font_size)
+      name_font_size -= 1
+      break if name_font_size <= 1
+      name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    end while name_text_size.width > (frame.size.width * 2 / 3)
+    @name.font = name_font
     @name.textColor = UIColor.whiteColor
     @name.backgroundColor = UIColor.clearColor
     @name.text = name
@@ -327,7 +336,7 @@ class RTTextarea < UIView
       bio_font_size -= 1
       break if bio_font_size <= 1
       bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while bio_text_size.width > (frame.size.width * 2 / 3)
+    end while bio_text_size.width > (frame.size.width * 3 / 4)
     @bio.font = bio_font
     @bio.textColor = UIColor.whiteColor
     @bio.backgroundColor = UIColor.clearColor
@@ -342,7 +351,6 @@ class RTTextarea < UIView
       taken_by_font_size -= 1
       break if taken_by_font_size <= 1
       taken_by_text_size = taken_by.sizeWithFont(taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-      # XXX: bio のサイズが frame より大きかった場合バグる
     end while bio_text_size.width + padding * 3 + taken_by_text_size.width > frame.size.width
     @taken_by.font = taken_by_font
     @taken_by.textColor = UIColor.whiteColor
