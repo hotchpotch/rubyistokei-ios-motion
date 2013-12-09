@@ -285,7 +285,7 @@ class RTTextarea < UIView
       font = UIFont.fontWithName(fontName, size: fontSize)
       fontSize -= 1
       break if fontSize <= 1
-      textSize = text.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+      textSize = (text || '').sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     end while textSize.width > maxWidth
     [font, textSize]
   end
@@ -299,61 +299,36 @@ class RTTextarea < UIView
     }
   end
 
-  def renderName(name = '')
-    font, textSize = calcFontAndTextSize(name, frame.size.width * 2 / 3, 30, "AvenirNext-Bold")
-    @name = createLabel(name, font)
+  def renderName(text = '')
+    font, textSize = calcFontAndTextSize(text, frame.size.width * 2 / 3, 30, "AvenirNext-Bold")
+    @name = createLabel(text, font)
     @name.frame = [[PADDING, 0], textSize]
     addSubview(@name)
   end
 
-  def renderTitle(title = '')
+  def renderTitle(text = '')
     name_text_size = @name.frame.size
-    font, textSize = calcFontAndTextSize(title, frame.size.width - (name_text_size.width + PADDING * 3), 16)
-    @title = createLabel(title, font)
+    font, textSize = calcFontAndTextSize(text, frame.size.width - (name_text_size.width + PADDING * 3), 16)
+    @title = createLabel(text, font)
     @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - textSize.height - PADDING],
                     textSize]
     addSubview(@title)
   end
 
-
-  def renderBio(bio = '')
-    bio_font_size = 16
-    begin
-      bio_font = UIFont.fontWithName("AvenirNext-Medium", size: bio_font_size)
-      bio_font_size -= 1
-      break if bio_font_size <= 1
-      bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while bio_text_size.width > (frame.size.width * 3 / 4)
-    @bio = UILabel.new
-    @bio.font = bio_font
-    @bio.textColor = UIColor.whiteColor
-    @bio.backgroundColor = UIColor.clearColor
-    @bio.text = bio
-    @bio.frame = [[PADDING, secondLineHeight], bio_text_size]
+  def renderBio(text = '')
+    font, textSize = calcFontAndTextSize(text, frame.size.width * 2 / 3, 16)
+    @bio = createLabel(text, font)
+    @bio.frame = [[PADDING, secondLineHeight], textSize]
     addSubview(@bio)
   end
 
-  def renderTakenBy(taken_by = '')
-    taken_by = "- Photo taken by #{taken_by}"
-
-    @taken_by = UILabel.new
-
-    bio_font_size = @bio.font.pointSize
+  def renderTakenBy(text = '')
+    text = "- Photo taken by #{text}"
     bio_text_size = @bio.frame.size
-
-    taken_by_font_size = [14, bio_font_size].min
-    begin
-      taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
-      taken_by_font_size -= 1
-      break if taken_by_font_size <= 1
-      taken_by_text_size = taken_by.sizeWithFont(taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while taken_by_text_size.width > frame.size.width - (bio_text_size.width + PADDING * 3)
-    @taken_by.font = taken_by_font
-    @taken_by.textColor = UIColor.whiteColor
-    @taken_by.backgroundColor = UIColor.clearColor
-    @taken_by.text = taken_by
-    @taken_by.frame = [[bio_text_size.width + PADDING * 2, secondLineHeight + bio_text_size.height - taken_by_text_size.height],
-                    taken_by_text_size]
+    font, textSize = calcFontAndTextSize(text, frame.size.width - (bio_text_size.width + PADDING * 3), [13, @bio.font.pointSize].min, "AvenirNext-MediumItalic")
+    @taken_by = createLabel(text, font)
+    @taken_by.frame = [[bio_text_size.width + PADDING * 2, secondLineHeight + bio_text_size.height - textSize.height],
+                    textSize]
     addSubview(@taken_by)
   end
 
