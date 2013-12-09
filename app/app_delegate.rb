@@ -279,6 +279,8 @@ class RTTextarea < UIView
     60
   end
 
+  # def renderLabel(label, text, maxWidth, fontSize, fontName)
+
   def renderName(name = '')
     name_font_size = 30
     begin
@@ -304,7 +306,7 @@ class RTTextarea < UIView
       title_font_size -= 1
       break if title_font_size <= 1
       title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while name_text_size.width + PADDING * 3 + title_text_size.width > frame.size.width
+    end while title_text_size.width > frame.size.width - (name_text_size.width + PADDING * 3)
 
     @title = UILabel.new
     @title.font = title_font
@@ -347,7 +349,7 @@ class RTTextarea < UIView
       taken_by_font_size -= 1
       break if taken_by_font_size <= 1
       taken_by_text_size = taken_by.sizeWithFont(taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while bio_text_size.width + PADDING * 3 + taken_by_text_size.width > frame.size.width
+    end while taken_by_text_size.width > frame.size.width - (bio_text_size.width + PADDING * 3)
     @taken_by.font = taken_by_font
     @taken_by.textColor = UIColor.whiteColor
     @taken_by.backgroundColor = UIColor.clearColor
