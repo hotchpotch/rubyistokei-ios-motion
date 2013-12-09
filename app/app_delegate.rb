@@ -290,20 +290,18 @@ class RTTextarea < UIView
     [font, textSize]
   end
 
+  def createLabel(text, font)
+    UILabel.new.tap {|label|
+      label.font = font
+      label.textColor = UIColor.whiteColor
+      label.backgroundColor = UIColor.clearColor
+      label.text = text
+    }
+  end
+
   def renderName(name = '')
     font, textSize = calcFontAndTextSize(name, frame.size.width * 2 / 3, 30, "AvenirNext-Bold")
-    #name_font_size = 30
-    #begin
-    #  name_font = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
-    #  name_font_size -= 1
-    #  break if name_font_size <= 1
-    #  name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    #end while name_text_size.width > (frame.size.width * 2 / 3)
-    @name = UILabel.new
-    @name.font = font
-    @name.textColor = UIColor.whiteColor
-    @name.backgroundColor = UIColor.clearColor
-    @name.text = name
+    @name = createLabel(name, font)
     @name.frame = [[PADDING, 0], textSize]
     addSubview(@name)
   end
