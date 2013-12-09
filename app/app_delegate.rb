@@ -334,7 +334,7 @@ class RTTextarea < UIView
   end
 
   def renderTakenBy(taken_by = '')
-    taken_by = "- Photo taken by #{rubyist.taken_by}"
+    taken_by = "- Photo taken by #{taken_by}"
 
     @taken_by = UILabel.new
 
