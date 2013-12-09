@@ -333,21 +333,14 @@ class RTTextarea < UIView
     addSubview(@bio)
   end
 
-  def secondLineHeight
-    @name.frame.size.height - PADDING
-  end
+  def renderTakenBy(taken_by = '')
+    taken_by = "- Photo taken by #{rubyist.taken_by}"
 
-  def renderRubyist(rubyist)
-    setNeedsLayout
+    @taken_by = UILabel.new
 
-    renderName(rubyist.name)
-    renderTitle(rubyist.title)
-    renderBio(rubyist.bio)
-    @taken_by ||= UILabel.new
     bio_font_size = @bio.font.pointSize
     bio_text_size = @bio.frame.size
 
-    taken_by = "- Photo taken by #{rubyist.taken_by}"
     taken_by_font_size = [14, bio_font_size].min
     begin
       taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
@@ -362,6 +355,19 @@ class RTTextarea < UIView
     @taken_by.frame = [[bio_text_size.width + PADDING * 2, secondLineHeight + bio_text_size.height - taken_by_text_size.height],
                     taken_by_text_size]
     addSubview(@taken_by)
+  end
+
+  def secondLineHeight
+    @name.frame.size.height - PADDING
+  end
+
+  def renderRubyist(rubyist)
+    setNeedsLayout
+
+    renderName(rubyist.name)
+    renderTitle(rubyist.title)
+    renderBio(rubyist.bio)
+    renderTakenBy(rubyist.taken_by)
   end
 
   def setNeedsLayout
