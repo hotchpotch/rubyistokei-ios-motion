@@ -183,7 +183,7 @@ class RTTokei < UIView
   end
 
   def updatePositionWithRubyist(rubyist)
-    if superview.image
+    if superview.image && rubyist
       frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds)
       p frame
       size = frame.size
@@ -212,7 +212,6 @@ class RTPhoto < UIImageView
   attr_accessor :rubyist
   def showRubyist(rubyist, &block)
     puts 'this is showRubyist'
-    self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
 
     puts 'sR 1'
@@ -266,7 +265,7 @@ class RTPhoto < UIImageView
 end
 
 class RTTextarea < UIView
-  attr_reader :rubyist
+  PADDING = 5
 
   def init
     textarea = super
@@ -287,7 +286,6 @@ class RTTextarea < UIView
     @bio ||= UILabel.new
     @taken_by ||= UILabel.new
 
-    padding = 5
 
     #name = rubyist.name || ''
     #name_font_size = name.size > 14 ? 25 : 30
@@ -297,7 +295,7 @@ class RTTextarea < UIView
     name = rubyist.name || ''
     name_font_size = 30
     begin
-      name_font = UIFont.fontWithName("AvenirNext-Medium", size: name_font_size)
+      name_font = UIFont.fontWithName("AvenirNext-Bold", size: name_font_size)
       name_font_size -= 1
       break if name_font_size <= 1
       name_text_size = name.sizeWithFont(name_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
@@ -306,7 +304,7 @@ class RTTextarea < UIView
     @name.textColor = UIColor.whiteColor
     @name.backgroundColor = UIColor.clearColor
     @name.text = name
-    @name.frame = [[padding, 0], name_text_size]
+    @name.frame = [[PADDING, 0], name_text_size]
     addSubview(@name)
 
     title = rubyist.title || ''
@@ -316,18 +314,17 @@ class RTTextarea < UIView
       title_font_size -= 1
       break if title_font_size <= 1
       title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-      # XXX: name のサイズが frame より大きかった場合バグる
-    end while name_text_size.width + padding * 3 + title_text_size.width > frame.size.width
+    end while name_text_size.width + PADDING * 3 + title_text_size.width > frame.size.width
 
     @title.font = title_font
     @title.textColor = UIColor.whiteColor
     @title.backgroundColor = UIColor.clearColor
     @title.text = title
-    @title.frame = [[name_text_size.width + padding * 2, name_text_size.height - title_text_size.height - padding],
+    @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - title_text_size.height - PADDING],
                     title_text_size]
     addSubview(@title)
 
-    second_line_height = name_text_size.height - padding
+    second_line_height = name_text_size.height - PADDING
 
     bio = rubyist.bio || ''
     bio_font_size = 16
@@ -341,7 +338,7 @@ class RTTextarea < UIView
     @bio.textColor = UIColor.whiteColor
     @bio.backgroundColor = UIColor.clearColor
     @bio.text = bio
-    @bio.frame = [[padding, second_line_height], bio_text_size]
+    @bio.frame = [[PADDING, second_line_height], bio_text_size]
     addSubview(@bio)
 
     taken_by = "- Photo taken by #{rubyist.taken_by}"
@@ -351,12 +348,12 @@ class RTTextarea < UIView
       taken_by_font_size -= 1
       break if taken_by_font_size <= 1
       taken_by_text_size = taken_by.sizeWithFont(taken_by_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while bio_text_size.width + padding * 3 + taken_by_text_size.width > frame.size.width
+    end while bio_text_size.width + PADDING * 3 + taken_by_text_size.width > frame.size.width
     @taken_by.font = taken_by_font
     @taken_by.textColor = UIColor.whiteColor
     @taken_by.backgroundColor = UIColor.clearColor
     @taken_by.text = taken_by
-    @taken_by.frame = [[bio_text_size.width + padding * 2, second_line_height + bio_text_size.height - taken_by_text_size.height],
+    @taken_by.frame = [[bio_text_size.width + PADDING * 2, second_line_height + bio_text_size.height - taken_by_text_size.height],
                     taken_by_text_size]
     addSubview(@taken_by)
   end
