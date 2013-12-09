@@ -309,6 +309,7 @@ class RTTextarea < UIView
       title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
       # XXX: name のサイズが frame より大きかった場合バグる
     end while name_text_size.width + padding * 3 + title_text_size.width > frame.size.width
+
     @title.font = title_font
     @title.textColor = UIColor.whiteColor
     @title.backgroundColor = UIColor.clearColor
@@ -320,8 +321,13 @@ class RTTextarea < UIView
     second_line_height = name_text_size.height - padding
 
     bio = rubyist.bio || ''
-    bio_font = UIFont.fontWithName("AvenirNext-Medium", size: 16)
-    bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    bio_font_size = 16
+    begin
+      bio_font = UIFont.fontWithName("AvenirNext-Medium", size: bio_font_size)
+      bio_font_size -= 1
+      break if bio_font_size <= 1
+      bio_text_size = bio.sizeWithFont(bio_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    end while bio_text_size.width > (frame.size.width * 2 / 3)
     @bio.font = bio_font
     @bio.textColor = UIColor.whiteColor
     @bio.backgroundColor = UIColor.clearColor
@@ -330,7 +336,7 @@ class RTTextarea < UIView
     addSubview(@bio)
 
     taken_by = "- Photo taken by #{rubyist.taken_by}"
-    taken_by_font_size = 14
+    taken_by_font_size = [14, bio_font_size].min
     begin
       taken_by_font = UIFont.fontWithName("AvenirNext-MediumItalic", size: taken_by_font_size)
       taken_by_font_size -= 1
