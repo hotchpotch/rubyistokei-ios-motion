@@ -280,9 +280,9 @@ class RTTextarea < UIView
   end
 
   # def renderLabel(label, text, maxWidth, fontSize, fontName)
-  def calcFontAndTextSize(text, maxWidth, fontSize, fontName)
+  def calcFontAndTextSize(text, maxWidth, fontSize, fontName = "AvenirNext-Medium")
     begin
-      font = UIFont.fontWithName("AvenirNext-Bold", size: fontSize)
+      font = UIFont.fontWithName(fontName, size: fontSize)
       fontSize -= 1
       break if fontSize <= 1
       textSize = text.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
@@ -308,23 +308,13 @@ class RTTextarea < UIView
 
   def renderTitle(title = '')
     name_text_size = @name.frame.size
-    title_font_size = 16
-    begin
-      title_font = UIFont.fontWithName("AvenirNext-Medium", size: title_font_size)
-      title_font_size -= 1
-      break if title_font_size <= 1
-      title_text_size = title.sizeWithFont(title_font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    end while title_text_size.width > frame.size.width - (name_text_size.width + PADDING * 3)
-
-    @title = UILabel.new
-    @title.font = title_font
-    @title.textColor = UIColor.whiteColor
-    @title.backgroundColor = UIColor.clearColor
-    @title.text = title
-    @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - title_text_size.height - PADDING],
-                    title_text_size]
+    font, textSize = calcFontAndTextSize(title, frame.size.width - (name_text_size.width + PADDING * 3), 16)
+    @title = createLabel(title, font)
+    @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - textSize.height - PADDING],
+                    textSize]
     addSubview(@title)
   end
+
 
   def renderBio(bio = '')
     bio_font_size = 16
