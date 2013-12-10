@@ -55,6 +55,7 @@ class RubyisTokeiViewController < UIViewController
     hidden_photo_tokei = RTTokei.new
     hidden_photo.addSubview(hidden_photo_tokei)
     hidden_photo_tokei.updatePositionWithRubyist hidden_photo.rubyist
+    hidden_photo_tokei.color = hidden_photo.rubyist.color
 
     self.view.addSubview hidden_photo
     hidden_photo.fadeIn {
@@ -155,7 +156,6 @@ class RTTokei < UIView
     @time_label = UILabel.new
     @time_label.font = font
     @time_label.textAlignment = NSTextAlignmentLeft
-    @time_label.textColor = UIColor.whiteColor.colorWithAlphaComponent(0.9)
     @time_label.backgroundColor = UIColor.clearColor
     @time_label.text = timeString
     @time_label.frame = [[0,0], @text_size]
@@ -165,12 +165,24 @@ class RTTokei < UIView
     @separator = UILabel.new
     # tfont = UIFont.fontWithName("AvenirNext-Bold", size: 60)
     @separator.font = font
-    @separator.textColor = @time_label.textColor
     @separator.backgroundColor = @time_label.backgroundColor
     @separator.text = ":"
     @separator.frame = [[hour_text_size.width - 4, 0], separator_text_size]
     addSubview(@separator)
+    self.color = UIColor.whiteColor
     s
+  end
+
+  def color=(ui_color)
+      if ui_color.respond_to? :to_color
+        begin
+          ui_color = ui_color.to_color
+        rescue
+          puts "color convert error #{ui_color}"
+          ui_color = UIColor.whiteColor
+        end
+      end
+      @time_label.textColor = @separator.textColor = ui_color
   end
 
   def centering

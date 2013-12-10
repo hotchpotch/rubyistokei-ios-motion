@@ -27,7 +27,7 @@ class Rubyist
     end
   end
 
-  attr_reader :image_url, :name, :title, :bio, :taken_by, :top, :left
+  attr_reader :image_url, :name, :title, :bio, :taken_by, :top, :left, :color
   def initialize(data)
     self.data = data
   end
