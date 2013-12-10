@@ -4,7 +4,8 @@ class AppDelegate
     @window.rootViewController = RubyisTokeiViewController.new
     @window.rootViewController.wantsFullScreenLayout = true
     @window.makeKeyAndVisible
-    $window = @window
+
+    application.idleTimerDisabled = true
     true
   end
 end
@@ -72,8 +73,12 @@ class RubyisTokeiViewController < UIViewController
     @hidden_photo.alpha = 0
     @manager.next_rubyist do |rubyist|
       puts "maneger loaded rubyist #{rubyist.name}"
-      @hidden_photo.showRubyist(rubyist) do
-        @next_photo_loaded = true
+      @hidden_photo.showRubyist(rubyist) do |image_load_successed|
+        if image_load_successed
+          @next_photo_loaded = true
+        else
+          photo_preload
+        end
       end
     end
   end
@@ -142,8 +147,8 @@ class RTTokei < UIView
   def init
     s = super
 
-    # font = UIFont.fontWithName("AvenirNext-Bold", size: 60)
-    font = UIFont.fontWithName("HelveticaNeue-Thin", size: 60)
+    font = UIFont.fontWithName("AvenirNext-Medium", size: 60)
+    # font = UIFont.fontWithName("HelveticaNeue-Thin", size: 60)
     @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
     hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
@@ -215,24 +220,23 @@ class RTPhoto < UIImageView
     self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
 
-    puts 'sR 1'
     Dispatch::Queue.concurrent.async do
-    puts 'sR 2'
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
-    puts 'sR 3'
       if image_data
-    puts 'sR 4'
         image = UIImage.alloc.initWithData(image_data)
         Dispatch::Queue.main.sync do
-    puts 'sR 5'
           self.image = image
           unless @textarea
             @textarea = RTTextarea.new
             addSubview @textarea
           end
-    puts 'sR 6'
           @textarea.renderRubyist rubyist
-          block.call
+          block.call true
+        end
+      else
+        puts "fail image load #{rubyist.name} #{rubyist.image_url}"
+        Dispatch::Queue.main.sync do
+          block.call false
         end
       end
     end
@@ -279,7 +283,6 @@ class RTTextarea < UIView
     60
   end
 
-  # def renderLabel(label, text, maxWidth, fontSize, fontName)
   def calcFontAndTextSize(text, maxWidth, fontSize, fontName = "AvenirNext-Medium")
     begin
       font = UIFont.fontWithName(fontName, size: fontSize)
@@ -351,7 +354,7 @@ class RTTextarea < UIView
       origin = frame.origin
       size = frame.size
       origin.y = size.height - textareaHeight
-      size.height = textareaHeight
+      size.height = textareaHeight + 2 # XXX: for retina iPad
 
       frame.origin = origin
       frame.size = size

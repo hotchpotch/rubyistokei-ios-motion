@@ -122,6 +122,7 @@ class RubyistManager
   end
 
   def orderd!
+    # XXX: kei_s 's tokei layout
     @ordered_rubyist_names = @rubyists.keys.shuffle
   end
 end
