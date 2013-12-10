@@ -167,7 +167,7 @@ class RTTokei < UIView
     @separator.font = font
     @separator.backgroundColor = @time_label.backgroundColor
     @separator.text = ":"
-    @separator.frame = [[hour_text_size.width - 4, 0], separator_text_size]
+    @separator.frame = [[hour_text_size.width, 0], separator_text_size]
     addSubview(@separator)
     self.color = UIColor.whiteColor
     s
@@ -292,7 +292,13 @@ class RTTextarea < UIView
 
   def textareaHeight
     # XXX: auto calc
-    60
+    if @name
+      # rendered
+      frame = @bio.frame
+      frame.origin.y + frame.size.height + 3
+    else
+      60
+    end
   end
 
   def calcFontAndTextSize(text, maxWidth, fontSize, fontName = "AvenirNext-Medium")
@@ -315,6 +321,7 @@ class RTTextarea < UIView
   end
 
   def renderName(text = '')
+    text = 'no name' if text.size == 0
     font, textSize = calcFontAndTextSize(text, frame.size.width * 2 / 3, 30, "AvenirNext-Bold")
     @name = createLabel(text, font)
     @name.frame = [[PADDING, 0], textSize]
@@ -338,7 +345,7 @@ class RTTextarea < UIView
   end
 
   def renderTakenBy(text = '')
-    text = "- Photo taken by #{text}"
+    text = " — Photo taken by #{text}"
     bio_text_size = @bio.frame.size
     font, textSize = calcFontAndTextSize(text, frame.size.width - (bio_text_size.width + PADDING * 3), [13, @bio.font.pointSize].min, "AvenirNext-MediumItalic")
     @taken_by = createLabel(text, font)
@@ -353,11 +360,11 @@ class RTTextarea < UIView
 
   def renderRubyist(rubyist)
     setNeedsLayout
-
     renderName(rubyist.name)
     renderTitle(rubyist.title)
     renderBio(rubyist.bio)
     renderTakenBy(rubyist.taken_by)
+    setNeedsLayout
   end
 
   def setNeedsLayout
