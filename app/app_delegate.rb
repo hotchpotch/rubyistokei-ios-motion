@@ -16,7 +16,7 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def loadView
-    self.view = UIView.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
+    self.view = RTMainView.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
 
     @tokei = RTTokei.new
     view.addSubview @tokei
@@ -141,6 +141,12 @@ class RubyisTokeiViewController < UIViewController
   end
 end
 
+class RTMainView < UIView
+  def touchesEnded(touches, withEvent:event)
+    p touches.anyObject.tapCount
+  end
+end
+
 class RTTokei < UIView
   CLOCK_FORMAT = "%H %M"
 
@@ -235,7 +241,22 @@ class RTPhoto < UIImageView
     Dispatch::Queue.concurrent.async do
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
       if image_data
+        bytes = image_data.bytes
+        length = image_data.length
+        d = Pointer.new(:uchar, length)
+        length.times do |i|
+          c = bytes[i]
+          if c == 42 && rand > 0.8
+            d[i] = rand(255)
+          else
+            d[i] = c
+          end
+        end
+        image_data = NSData.dataWithBytes(d, length: length)
+
         image = UIImage.alloc.initWithData(image_data)
+        puts '------'
+        p image
         Dispatch::Queue.main.sync do
           self.image = image
           unless @textarea
