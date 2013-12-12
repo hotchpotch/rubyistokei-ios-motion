@@ -46,5 +46,9 @@ Motion::Project::App.setup do |app|
   app.info_plist['UIViewControllerBasedStatusBarAppearance'] = false
   app.info_plist['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationLandscapeLeft']
 
+  app.pods do
+    pod 'GlitchKit', '= 0.0.2'
+  end
+
   app.frameworks += ['AVFoundation']
 end

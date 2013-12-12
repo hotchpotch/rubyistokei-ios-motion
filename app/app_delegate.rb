@@ -1,7 +1,7 @@
 class AppDelegate
   def application(application, didFinishLaunchingWithOptions:launchOptions)
     @window = UIWindow.alloc.initWithFrame(UIScreen.mainScreen.bounds)
-    @window.rootViewController = RubyisTokeiViewController.new
+    @window.rootViewController = RTViewController.new
     @window.rootViewController.wantsFullScreenLayout = true
     @window.makeKeyAndVisible
 
@@ -20,7 +20,7 @@ module Kernel
   end
 end
 
-class RubyisTokeiViewController < UIViewController
+class RTViewController < UIViewController
   def supportedInterfaceOrientations
     UIInterfaceOrientationMaskAll
   end
@@ -37,6 +37,14 @@ class RubyisTokeiViewController < UIViewController
       photo_preload
       check_and_show_next_rubyist
     end
+
+    NSNotificationCenter.defaultCenter.addObserver(self, selector:'glitch!:', name:'glitch', object:nil)
+  end
+
+  def glitch!(user_info)
+    @current_photo.glitch if @current_photo
+    @hidden_photo.glitch if @hidden_photo
+    @glitch = true
   end
 
   def swap_photo!
@@ -66,8 +74,9 @@ class RubyisTokeiViewController < UIViewController
     hidden_photo.addSubview(hidden_photo_tokei)
     hidden_photo_tokei.updatePositionWithRubyist hidden_photo.rubyist
     hidden_photo_tokei.color = hidden_photo.rubyist.color
-
     self.view.addSubview hidden_photo
+
+    @current_photo = hidden_photo
     hidden_photo.fadeIn {
       log "subviews: #{self.view.subviews.size}"
       @tokei = hidden_photo_tokei
@@ -83,7 +92,7 @@ class RubyisTokeiViewController < UIViewController
     @hidden_photo.alpha = 0
     @manager.next_rubyist do |rubyist|
       log "maneger loaded rubyist #{rubyist.name}"
-      @hidden_photo.showRubyist(rubyist) do |image_load_successed|
+      @hidden_photo.showRubyist(rubyist, @glitch) do |image_load_successed|
         if image_load_successed
           @next_photo_loaded = true
         else
@@ -152,9 +161,9 @@ end
 
 class RTMainView < UIView
   def touchesEnded(touches, withEvent:event)
-    if touches.anyObject.tapCount >= 4
-      RTPhoto.glitch = RTPhoto.glitch ? false : true
-      touches.anyObject.tapCount  = 0
+    if touches.anyObject.tapCount >= 7
+      notify = NSNotification.notificationWithName("glitch", object: self)
+      NSNotificationCenter.defaultCenter.postNotification(notify)
     end
   end
 end
@@ -244,18 +253,8 @@ class RTTokei < UIView
 end
 
 class RTPhoto < UIImageView
-  class << self
-    def glitch=(bool)
-      @glitch = !!bool
-    end
-
-    def glitch
-      !! @glitch
-    end
-  end
-
   attr_accessor :rubyist
-  def showRubyist(rubyist, &block)
+  def showRubyist(rubyist, glitch, &block)
     log 'this is showRubyist'
     self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
@@ -263,15 +262,10 @@ class RTPhoto < UIImageView
     Dispatch::Queue.concurrent.async do
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
       if image_data
-        if RTPhoto.glitch
-          begin
-            image_data = glitchnize(image_data)
-          rescue
-          end
-        end
         image = UIImage.alloc.initWithData(image_data)
-        log '------'
-        log_p image
+        if glitch
+          image = image.glitch
+        end
         Dispatch::Queue.main.sync do
           self.image = image
           unless @textarea
@@ -288,21 +282,6 @@ class RTPhoto < UIImageView
         end
       end
     end
-  end
-
-  def glitchnize(image_data)
-    bytes = image_data.bytes
-    length = image_data.length
-    d = Pointer.new(:uchar, length)
-    length.times do |i|
-      c = bytes[i]
-      if c == 42 && rand > 0.8
-        d[i] = rand(255)
-      else
-        d[i] = c
-      end
-    end
-    NSData.dataWithBytes(d, length: length)
   end
 
   def fadeIn(&block)

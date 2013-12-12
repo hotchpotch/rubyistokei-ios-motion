@@ -5,5 +5,6 @@ gem 'rake'
 
 gem 'motion-yaml'
 gem 'bubble-wrap', require: false
-# gem 'sugarcube', :require => 'sugarcube-classic'
+gem 'motion-cocoapods', '~> 1.4.0'
+
 
