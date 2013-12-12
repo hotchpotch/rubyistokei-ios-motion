@@ -41,10 +41,6 @@ class Rubyist
 
     tokei = data['tokei']
     if tokei.kind_of? Hash
-      # XXX: rubykaigi2013_indirect.yaml
-      # XXX raise error: rubytaiwan.yaml
-      # XXX: rubyist load error:  josevalim.yaml - undefined method `[]' for nil:NilClass
-      # ToDo: https://raw.github.com/darashi/rubyistokei/master/data/josevalim.yaml
       @top = [tokei['top'].to_i, 0].max
       @left = [tokei['left'].to_i, 0].max
       @color = tokei['color']
@@ -122,8 +118,7 @@ class RubyistManager
   end
 
   def orderd!
-    @ordered_rubyist_names = ['shyouhei_formal.yaml'] + @rubyists.keys.shuffle
-    #@ordered_rubyist_names = @rubyists.keys.shuffle
+    @ordered_rubyist_names = ['josevalim.yaml'] + @rubyists.keys.shuffle
   end
 end
 
