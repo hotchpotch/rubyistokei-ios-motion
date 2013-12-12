@@ -235,8 +235,8 @@ class RTTokei < UIView
       size = frame.size
       #<CGRect origin=#<CGPoint x=44.1171264648438 y=0.0> size=#<CGSize width=479.765747070312 height=320.0>>
       origin = frame.origin
-      origin.x += (size.width / 1024) * [rubyist.left, 650].min
-      origin.y += (size.height / 760) * [rubyist.top, 600].min
+      origin.x += (size.width / 1024) * [rubyist.left, 660].min
+      origin.y += (size.height / 760) * [rubyist.top, 470].min
       log_p origin
       frame.origin = origin
 
