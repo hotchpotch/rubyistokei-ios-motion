@@ -46,6 +46,11 @@ Motion::Project::App.setup do |app|
   app.info_plist['UIViewControllerBasedStatusBarAppearance'] = false
   app.info_plist['UISupportedInterfaceOrientations'] = ['UIInterfaceOrientationLandscapeLeft']
 
+  app.release do
+    app.provisioning_profile = "#{ENV['HOME']}/Dropbox/iOS/mobileprovisions/Rubyistokei.mobileprovision"
+    app.entitlements['aps-environment'] = 'production'
+  end
+
   app.pods do
     pod 'GlitchKit', '= 0.0.2'
   end

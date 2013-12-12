@@ -32,6 +32,10 @@ class RTViewController < UIViewController
     view.addSubview @tokei
     @tokei.centering
 
+    loading = RTLoading.new
+    view.addSubview loading
+    loading.centering
+
     RubyistManager.load do |manager|
       @manager = manager
       photo_preload
@@ -181,8 +185,8 @@ class RTTokei < UIView
 
     font = UIFont.fontWithName("AvenirNext-Medium", size: 60)
     # font = UIFont.fontWithName("HelveticaNeue-Thin", size: 60)
-    @text_size = RTTextUtil.text(timeString, sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
-    hour_text_size = RTTextUtil.text("00", sizeWithFont: font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    @text_size = timeString.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+    hour_text_size = "00".sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
     @time_label = UILabel.new
     @time_label.font = font
@@ -217,17 +221,7 @@ class RTTokei < UIView
   end
 
   def centering
-    frame = superview.frame
-    textareaHeight = @text_size.height
-    origin = frame.origin
-    size = frame.size
-    origin.y = (size.height - @text_size.height) / 2
-    origin.x = (size.width - @text_size.width) / 2
-
-    frame.origin = origin
-    #frame.size = size
-    self.frame = frame
-    setNeedsLayout
+    RTUtil.textCentering(self, @text_size)
   end
 
   def updatePositionWithRubyist(rubyist)
@@ -258,6 +252,35 @@ class RTTokei < UIView
     end
   end
 end
+
+class RTLoading < UIView
+  CLOCK_FORMAT = "%H %M"
+
+  attr_reader :time_label
+  def init
+    s = super
+
+    font = UIFont.fontWithName("AvenirNext-Medium", size: 18)
+    message = "Now Loading"
+    @text_size = message.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
+
+    label = UILabel.new
+    label.font = font
+    label.textAlignment = NSTextAlignmentLeft
+    label.textColor = UIColor.whiteColor
+    label.backgroundColor = UIColor.clearColor
+    label.text = message
+    label.frame = [[0,0], @text_size]
+    addSubview(label)
+
+    s
+  end
+
+  def centering
+    RTUtil.textCentering(self, @text_size, 40)
+  end
+end
+
 
 class RTPhoto < UIImageView
   attr_accessor :rubyist
@@ -421,18 +444,19 @@ class RTTextarea < UIView
   end
 end
 
-class RTTextUtil
-  def self.text(text, sizeWithFont:font, constrainedToSize:size, lineBreakMode:lineBreakMode)
-    return text.sizeWithFont(font, constrainedToSize:size, lineBreakMode:lineBreakMode)
+module RTUtil
+  def textCentering(view, text_size, top = 0, left = 0)
+    frame = view.superview.frame
+    textareaHeight = text_size.height
+    origin = frame.origin
+    size = frame.size
+    origin.y = (size.height - text_size.height) / 2 + top
+    origin.x = (size.width - text_size.width) / 2 + left
+
+    frame.origin = origin
+    view.frame = frame
+    view.setNeedsLayout
   end
 
-  def self.attributesWithFont(font, color:color, lineBreakMode:lineBreakMode)
-    paragraph = NSMutableParagraphStyle.new
-    paragraph.lineBreakMode = lineBreakMode
-    return {
-      NSFontAttributeName            => font,
-      NSForegroundColorAttributeName => color,
-      NSParagraphStyleAttributeName  => paragraph,
-    }
-  end
+  extend self
 end
