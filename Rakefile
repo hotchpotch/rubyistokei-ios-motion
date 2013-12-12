@@ -35,7 +35,6 @@ Motion::Project::App.setup do |app|
   app.deployment_target = '7.0'
   app.identifier = "Rubyistokei"
   app.icons = %w(
-    iTunesArtwork@2x.png
     Icon-76@2x.png
     Icon@2x.png
     Icon-76.png
@@ -50,7 +49,6 @@ Motion::Project::App.setup do |app|
 
   app.release do
     app.provisioning_profile = "#{ENV['HOME']}/Dropbox/iOS/mobileprovisions/Rubyistokei.mobileprovision"
-    app.entitlements['aps-environment'] = 'production'
   end
 
   app.pods do
