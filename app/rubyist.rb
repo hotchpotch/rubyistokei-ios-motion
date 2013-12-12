@@ -125,7 +125,8 @@ class RubyistManager
     # XXX: shohei_urabe 's tokei layout
     # XXX: stolt45.yaml layout
     # XXX: The regend
-    @ordered_rubyist_names = @rubyists.keys.shuffle
+    @ordered_rubyist_names = ['legends.yaml'] + @rubyists.keys.shuffle
+    #@ordered_rubyist_names = @rubyists.keys.shuffle
   end
 end
 

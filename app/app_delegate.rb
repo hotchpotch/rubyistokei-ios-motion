@@ -42,9 +42,11 @@ class RTViewController < UIViewController
   end
 
   def glitch!(user_info)
-    @current_photo.glitch if @current_photo
-    @hidden_photo.glitch if @hidden_photo
-    @glitch = true
+    unless @glitch
+      @current_photo.glitch if @current_photo
+      @hidden_photo.glitch if @hidden_photo
+      @glitch = true
+    end
   end
 
   def swap_photo!
@@ -140,7 +142,7 @@ class RTViewController < UIViewController
   end
 
   def change_rubyist?
-    @manager && change_10sec?
+    @manager && change_minute?
   end
 
   def change_10sec?
@@ -233,8 +235,8 @@ class RTTokei < UIView
       size = frame.size
       #<CGRect origin=#<CGPoint x=44.1171264648438 y=0.0> size=#<CGSize width=479.765747070312 height=320.0>>
       origin = frame.origin
-      origin.x += (size.width / 1024) * rubyist.left
-      origin.y += (size.height / 760) * rubyist.top
+      origin.x += (size.width / 1024) * [rubyist.left, 650].min
+      origin.y += (size.height / 760) * [rubyist.top, 600].min
       log_p origin
       frame.origin = origin
 
@@ -361,9 +363,10 @@ class RTTextarea < UIView
 
   def renderTitle(text = '')
     name_text_size = @name.frame.size
-    font, textSize = calcFontAndTextSize(text, frame.size.width - (name_text_size.width + PADDING * 3), 16)
+    font_size = [16, @name.font.pointSize].min
+    font, textSize = calcFontAndTextSize(text, frame.size.width - (name_text_size.width + PADDING * 3), font_size)
     @title = createLabel(text, font)
-    @title.frame = [[name_text_size.width + PADDING * 2, name_text_size.height - textSize.height - PADDING],
+    @title.frame = [[name_text_size.width + PADDING * 2, [name_text_size.height - textSize.height - PADDING, 0].max],
                     textSize]
     addSubview(@title)
   end
