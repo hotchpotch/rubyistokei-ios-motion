@@ -70,11 +70,11 @@ class RubyistManager
             end
             manager.orderd!
           rescue Exception => e
-            p "json error:  #{response.body} - #{e}"
+            log_p "json error:  #{response.body} - #{e}"
             manager.error = "json error #{response.body}"
           end
         else
-          p "response error #{response.error}"
+          log_p "response error #{response.error}"
           manager.error = 'response error'
         end
         block.call manager
@@ -93,7 +93,7 @@ class RubyistManager
 
   def next_rubyist(&block)
     name = next_rubyist_name
-    puts "next_rubyist_load: #{name}"
+    log "next_rubyist_load: #{name}"
 
     if rubyists[name]
       block.call rubyists[name]
@@ -103,7 +103,7 @@ class RubyistManager
     Rubyist.load_by_name(name) do |rubyist|
       if rubyist == :error
         rubyists.delete(name)
-        puts "rubylist load error: #{name} - call next_rubyist"
+        log "rubylist load error: #{name} - call next_rubyist"
         next_rubyist(&block)
       else
         rubyists[name] = rubyist
@@ -123,6 +123,8 @@ class RubyistManager
 
   def orderd!
     # XXX: shohei_urabe 's tokei layout
+    # XXX: stolt45.yaml layout
+    # XXX: The regend
     @ordered_rubyist_names = @rubyists.keys.shuffle
   end
 end

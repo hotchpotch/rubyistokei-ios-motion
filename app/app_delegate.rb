@@ -10,6 +10,16 @@ class AppDelegate
   end
 end
 
+module Kernel
+  def log(*args)
+    puts *args if ENV['log']
+  end
+
+  def log_p(*args)
+    p *args if ENV['log']
+  end
+end
+
 class RubyisTokeiViewController < UIViewController
   def supportedInterfaceOrientations
     UIInterfaceOrientationMaskAll
@@ -59,7 +69,7 @@ class RubyisTokeiViewController < UIViewController
 
     self.view.addSubview hidden_photo
     hidden_photo.fadeIn {
-      puts "subviews: #{self.view.subviews.size}"
+      log "subviews: #{self.view.subviews.size}"
       @tokei = hidden_photo_tokei
       hidden_photo_tokei = nil
       hidden_photo = nil
@@ -68,12 +78,11 @@ class RubyisTokeiViewController < UIViewController
   end
 
   def photo_preload
-    puts 'photo preloading'
-    # XXX: hidden_photo を使い回すと落ちる
+    log 'photo preloading'
     @hidden_photo = RTPhoto.alloc.initWithFrame([[0,0], UIScreen.mainScreen.bounds.size.to_a.reverse])
     @hidden_photo.alpha = 0
     @manager.next_rubyist do |rubyist|
-      puts "maneger loaded rubyist #{rubyist.name}"
+      log "maneger loaded rubyist #{rubyist.name}"
       @hidden_photo.showRubyist(rubyist) do |image_load_successed|
         if image_load_successed
           @next_photo_loaded = true
@@ -99,7 +108,7 @@ class RubyisTokeiViewController < UIViewController
     end
 
     Dispatch::Queue.concurrent.async do
-      puts 'waiting...'
+      log 'waiting...'
       sleep 1
       Dispatch::Queue.main.sync do
         show_next_rubyist
@@ -143,7 +152,10 @@ end
 
 class RTMainView < UIView
   def touchesEnded(touches, withEvent:event)
-    p touches.anyObject.tapCount
+    if touches.anyObject.tapCount >= 4
+      RTPhoto.glitch = RTPhoto.glitch ? false : true
+      touches.anyObject.tapCount  = 0
+    end
   end
 end
 
@@ -184,7 +196,7 @@ class RTTokei < UIView
         begin
           ui_color = ui_color.to_color
         rescue
-          puts "color convert error #{ui_color}"
+          log "color convert error #{ui_color}"
           ui_color = UIColor.whiteColor
         end
       end
@@ -208,13 +220,13 @@ class RTTokei < UIView
   def updatePositionWithRubyist(rubyist)
     if superview.image
       frame = AVMakeRectWithAspectRatioInsideRect(superview.image.size, superview.bounds)
-      p frame
+      log_p frame
       size = frame.size
       #<CGRect origin=#<CGPoint x=44.1171264648438 y=0.0> size=#<CGSize width=479.765747070312 height=320.0>>
       origin = frame.origin
       origin.x += (size.width / 1024) * rubyist.left
       origin.y += (size.height / 760) * rubyist.top
-      p origin
+      log_p origin
       frame.origin = origin
 
       self.frame = frame
@@ -232,31 +244,34 @@ class RTTokei < UIView
 end
 
 class RTPhoto < UIImageView
+  class << self
+    def glitch=(bool)
+      @glitch = !!bool
+    end
+
+    def glitch
+      !! @glitch
+    end
+  end
+
   attr_accessor :rubyist
   def showRubyist(rubyist, &block)
-    puts 'this is showRubyist'
+    log 'this is showRubyist'
     self.rubyist = rubyist
     self.contentMode = UIViewContentModeScaleAspectFit
 
     Dispatch::Queue.concurrent.async do
       image_data = NSData.alloc.initWithContentsOfURL(NSURL.URLWithString(rubyist.image_url))
       if image_data
-        bytes = image_data.bytes
-        length = image_data.length
-        d = Pointer.new(:uchar, length)
-        length.times do |i|
-          c = bytes[i]
-          if c == 42 && rand > 0.8
-            d[i] = rand(255)
-          else
-            d[i] = c
+        if RTPhoto.glitch
+          begin
+            image_data = glitchnize(image_data)
+          rescue
           end
         end
-        image_data = NSData.dataWithBytes(d, length: length)
-
         image = UIImage.alloc.initWithData(image_data)
-        puts '------'
-        p image
+        log '------'
+        log_p image
         Dispatch::Queue.main.sync do
           self.image = image
           unless @textarea
@@ -267,12 +282,27 @@ class RTPhoto < UIImageView
           block.call true
         end
       else
-        puts "fail image load #{rubyist.name} #{rubyist.image_url}"
+        log "fail image load #{rubyist.name} #{rubyist.image_url}"
         Dispatch::Queue.main.sync do
           block.call false
         end
       end
     end
+  end
+
+  def glitchnize(image_data)
+    bytes = image_data.bytes
+    length = image_data.length
+    d = Pointer.new(:uchar, length)
+    length.times do |i|
+      c = bytes[i]
+      if c == 42 && rand > 0.8
+        d[i] = rand(255)
+      else
+        d[i] = c
+      end
+    end
+    NSData.dataWithBytes(d, length: length)
   end
 
   def fadeIn(&block)
@@ -342,6 +372,7 @@ class RTTextarea < UIView
   end
 
   def renderName(text = '')
+    # XXX: The regend
     text = 'no name' if text.size == 0
     font, textSize = calcFontAndTextSize(text, frame.size.width * 2 / 3, 30, "AvenirNext-Bold")
     @name = createLabel(text, font)
