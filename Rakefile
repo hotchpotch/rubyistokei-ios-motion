@@ -30,8 +30,10 @@ end
 
 Motion::Project::App.setup do |app|
   # Use `rake config' to see complete project settings.
+  app.version = '1.0.0'
   app.name = 'Rubyistokei'
   app.deployment_target = '7.0'
+  app.identifier = "Rubyistokei"
   app.icons = %w(
     iTunesArtwork@2x.png
     Icon-76@2x.png

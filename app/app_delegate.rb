@@ -254,14 +254,12 @@ class RTTokei < UIView
 end
 
 class RTLoading < UIView
-  CLOCK_FORMAT = "%H %M"
-
   attr_reader :time_label
   def init
     s = super
 
     font = UIFont.fontWithName("AvenirNext-Medium", size: 18)
-    message = "Now Loading"
+    message = "Rubyistokei is now loading..."
     @text_size = message.sizeWithFont(font, constrainedToSize: [1000, 1000], lineBreakMode: NSLineBreakByTruncatingHead)
 
     label = UILabel.new
