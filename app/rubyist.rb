@@ -118,7 +118,8 @@ class RubyistManager
   end
 
   def orderd!
-    @ordered_rubyist_names = ['josevalim.yaml'] + @rubyists.keys.shuffle
+    @ordered_rubyist_names = @rubyists.keys.shuffle
+    #@ordered_rubyist_names = ['rubyist.yaml'] + @rubyists.keys.shuffle
   end
 end
 

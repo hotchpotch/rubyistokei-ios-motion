@@ -72,7 +72,7 @@ class RTViewController < UIViewController
     end
 
     hidden_photo = @hidden_photo
-    hidden_photo_tokei = RTTokei.new
+    @hidden_photo_tokei = hidden_photo_tokei = RTTokei.new
     hidden_photo.addSubview(hidden_photo_tokei)
     hidden_photo_tokei.updatePositionWithRubyist hidden_photo.rubyist
     hidden_photo_tokei.color = hidden_photo.rubyist.color
@@ -82,8 +82,10 @@ class RTViewController < UIViewController
     hidden_photo.fadeIn {
       log "subviews: #{self.view.subviews.size}"
       @tokei = hidden_photo_tokei
+      @hidden_photo_tokei = nil
       hidden_photo_tokei = nil
       hidden_photo = nil
+      @now_changing = false
     }
     @hidden_photo = nil
   end
@@ -113,7 +115,6 @@ class RTViewController < UIViewController
     if @next_photo_loaded
       self.swap_photo!
       @next_photo_loaded = false
-      @now_changing = false
       photo_preload
       return
     end
@@ -137,7 +138,7 @@ class RTViewController < UIViewController
       @timer.invalidate
       @timer = nil
     else
-      @timer = NSTimer.scheduledTimerWithTimeInterval(1.0, target:self, selector:'timerFired', userInfo:nil, repeats:true)
+      @timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target:self, selector:'timerFired', userInfo:nil, repeats:true)
     end
   end
 
@@ -157,7 +158,8 @@ class RTViewController < UIViewController
     if change_rubyist?
       check_and_show_next_rubyist
     end
-    @tokei.updateTokeiView
+    @tokei.updateTokeiView if @tokei
+    @hidden_photo_tokei.updateTokeiView if @hidden_photo_tokei
   end
 end
 
@@ -249,8 +251,11 @@ class RTTokei < UIView
   end
 
   def updateTokeiView
-    @separator.hidden = !@separator.hidden?
-    self.time_label.text = timeString
+    if @last_update_time != Time.now.to_i
+      @separator.hidden = !@separator.hidden?
+      self.time_label.text = timeString
+      @last_update_time = Time.now.to_i
+    end
   end
 end
 
@@ -288,7 +293,7 @@ class RTPhoto < UIImageView
 
   def fadeIn(&block)
     UIView.animateWithDuration(1.0,
-                             delay: 0.0,
+                             delay: 0.7,
                              options:UIViewAnimationCurveEaseInOut,
                              animations: -> {
                                self.alpha = 1.0
@@ -301,7 +306,7 @@ class RTPhoto < UIImageView
 
   def fadeOut(&block)
     UIView.animateWithDuration(0.5,
-                             delay: 0.0,
+                             delay: 0.5,
                              options:UIViewAnimationCurveEaseInOut,
                              animations: -> {
                                self.alpha = 0.0
